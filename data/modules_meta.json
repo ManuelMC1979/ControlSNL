@@ -1,1 +1,148 @@
-[{"id":"reembolsos","nombre":"Reembolsos","icon":"💳","descripcion":"Solicitudes de reembolso de gastos médicos particulares ingresadas vía Call Center o formulario directo.","total":228,"sinError":45,"conError":183,"gestion":"88% de los casos gestionados — 3 solicitudes sin gestión registrada.","observacion":"El servicio “Salud Mental Online” concentra la mayoría de las solicitudes; 5 casos permanecen pendientes.","issues":[{"t":"Fecha de ingreso en blanco","c":170,"sev":"warning"},{"t":"Fecha de ingreso en blanco + cita futura","c":6,"sev":"serious"},{"t":"Fecha de cita posterior al ingreso","c":7,"sev":"critical"}],"rut":{"valido":226,"vacio":2,"formato":0,"dv":0}},{"id":"informes","nombre":"Informes Médicos","icon":"📄","descripcion":"Solicitudes de informes, certificados y licencias médicas (LM) gestionadas por el equipo.","total":430,"sinError":316,"conError":114,"gestion":"60% de los registros fueron ingresados directamente por el paciente, sin intervención de ejecutivo.","observacion":"Traumatología concentra 59% del volumen. El motivo “rechazo de licencia médica” es el más recurrente.","issues":[{"t":"Fecha de formulario futura","c":55,"sev":"serious"},{"t":"Atención posterior al formulario","c":52,"sev":"critical"},{"t":"Formulario futuro + término LM anterior al inicio","c":2,"sev":"critical"},{"t":"Término de licencia médica futuro","c":2,"sev":"warning"},{"t":"Término de licencia anterior al inicio","c":1,"sev":"critical"},{"t":"Atención futura + posterior al formulario","c":1,"sev":"critical"},{"t":"Formulario futuro + término futuro","c":1,"sev":"serious"}],"rut":{"valido":426,"vacio":0,"formato":3,"dv":1}},{"id":"otras","nombre":"Otras Solicitudes","icon":"🗂️","descripcion":"Solicitudes diversas: recetas, órdenes médicas, certificados y confirmaciones diagnósticas.","total":691,"sinError":503,"conError":188,"gestion":"61% de los casos no tiene gestión BO registrada.","observacion":"“Receta médica” es el motivo más frecuente, con 273 solicitudes.","issues":[{"t":"Fecha de formulario futura","c":105,"sev":"serious"},{"t":"Atención posterior al formulario","c":81,"sev":"critical"},{"t":"Formulario futuro + atención futura","c":2,"sev":"critical"}],"rut":{"valido":684,"vacio":0,"formato":4,"dv":3}},{"id":"cd","nombre":"CD Pendiente","icon":"🏥","descripcion":"Confirmaciones diagnósticas (CD) pendientes de agendamiento en centros presenciales.","total":480,"sinError":368,"conError":112,"gestion":"83% de los casos gestionado por un solo ejecutivo (Raquel).","observacion":"61 solicitudes sin gestión registrada; el volumen tuvo un pico en abril 2026.","issues":[{"t":"Fecha de formulario futura","c":66,"sev":"serious"},{"t":"Atención posterior al formulario","c":46,"sev":"critical"}],"rut":{"valido":476,"vacio":0,"formato":2,"dv":2}}]
+[
+ {
+  "id": "reembolsos",
+  "nombre": "Reembolsos",
+  "icon": "💳",
+  "descripcion": "Solicitudes de reembolso de gastos médicos particulares ingresadas vía Call Center o formulario directo.",
+  "gestion": "88% de los casos gestionados — 3 solicitudes sin gestión registrada.",
+  "observacion": "El servicio “Salud Mental Online” concentra la mayoría de las solicitudes; 5 casos permanecen pendientes.",
+  "total": 228,
+  "sinError": 45,
+  "conError": 183,
+  "rut": {
+   "valido": 226,
+   "vacio": 2,
+   "formato": 0,
+   "dv": 0
+  },
+  "issues": [
+   {
+    "t": "Fecha de ingreso en blanco",
+    "c": 170,
+    "sev": "warning"
+   },
+   {
+    "t": "Fecha de cita posterior al ingreso",
+    "c": 7,
+    "sev": "critical"
+   },
+   {
+    "t": "Fecha de ingreso en blanco + Fecha de cita futura",
+    "c": 6,
+    "sev": "serious"
+   }
+  ]
+ },
+ {
+  "id": "informes",
+  "nombre": "Informes Médicos",
+  "icon": "📄",
+  "descripcion": "Solicitudes de informes, certificados y licencias médicas (LM) gestionadas por el equipo.",
+  "gestion": "60% de los registros fueron ingresados directamente por el paciente, sin intervención de ejecutivo.",
+  "observacion": "Traumatología concentra 59% del volumen. El motivo “rechazo de licencia médica” es el más recurrente.",
+  "total": 430,
+  "sinError": 357,
+  "conError": 73,
+  "rut": {
+   "valido": 426,
+   "vacio": 0,
+   "formato": 3,
+   "dv": 1
+  },
+  "issues": [
+   {
+    "t": "Fecha de formulario futura",
+    "c": 34,
+    "sev": "serious"
+   },
+   {
+    "t": "Atención posterior al formulario",
+    "c": 34,
+    "sev": "critical"
+   },
+   {
+    "t": "Término de licencia médica futuro",
+    "c": 2,
+    "sev": "serious"
+   },
+   {
+    "t": "Fecha de formulario futura + Término de licencia anterior al inicio",
+    "c": 1,
+    "sev": "critical"
+   },
+   {
+    "t": "Término de licencia anterior al inicio",
+    "c": 1,
+    "sev": "critical"
+   },
+   {
+    "t": "Fecha de formulario futura + Término de licencia médica futuro",
+    "c": 1,
+    "sev": "serious"
+   }
+  ]
+ },
+ {
+  "id": "otras",
+  "nombre": "Otras Solicitudes",
+  "icon": "🗂️",
+  "descripcion": "Solicitudes diversas: recetas, órdenes médicas, certificados y confirmaciones diagnósticas.",
+  "gestion": "61% de los casos no tiene gestión BO registrada.",
+  "observacion": "“Receta médica” es el motivo más frecuente, con 273 solicitudes.",
+  "total": 691,
+  "sinError": 503,
+  "conError": 188,
+  "rut": {
+   "valido": 684,
+   "vacio": 0,
+   "formato": 4,
+   "dv": 3
+  },
+  "issues": [
+   {
+    "t": "Fecha de formulario futura",
+    "c": 105,
+    "sev": "serious"
+   },
+   {
+    "t": "Atención posterior al formulario",
+    "c": 81,
+    "sev": "critical"
+   },
+   {
+    "t": "Fecha de formulario futura + Atención futura",
+    "c": 2,
+    "sev": "serious"
+   }
+  ]
+ },
+ {
+  "id": "cd",
+  "nombre": "CD Pendiente",
+  "icon": "🏥",
+  "descripcion": "Confirmaciones diagnósticas (CD) pendientes de agendamiento en centros presenciales.",
+  "gestion": "83% de los casos gestionado por un solo ejecutivo (Raquel).",
+  "observacion": "61 solicitudes sin gestión registrada; el volumen tuvo un pico en abril 2026.",
+  "total": 480,
+  "sinError": 368,
+  "conError": 112,
+  "rut": {
+   "valido": 476,
+   "vacio": 0,
+   "formato": 2,
+   "dv": 2
+  },
+  "issues": [
+   {
+    "t": "Fecha de formulario futura",
+    "c": 66,
+    "sev": "serious"
+   },
+   {
+    "t": "Atención posterior al formulario",
+    "c": 46,
+    "sev": "critical"
+   }
+  ]
+ }
+]
