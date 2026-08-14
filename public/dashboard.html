@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría SNL Progesys</title>
+<style>
+  :root{
+    --page:#f7f6f2; --surface:#ffffff; --surface-2:#f1efe9;
+    --ink:#16201f; --ink-2:#52625f; --ink-3:#8a9793;
+    --border:rgba(22,32,31,0.12); --border-strong:rgba(22,32,31,0.20);
+    --accent:#0f6b62; --accent-ink:#ffffff; --accent-soft:#e4f2ef; --accent-soft-ink:#0f6b62;
+    --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+    --good-soft:#e4f6e0; --warning-soft:#fff3d6; --serious-soft:#fde5da; --critical-soft:#fbe1e1;
+    --good-ink:#0c6b0c; --warning-ink:#8a5c00; --serious-ink:#a6431f; --critical-ink:#a12222;
+    --m1:#2a78d6; --m2:#eb6834; --m3:#1baf7a; --m4:#eda100;
+    --rail-bg:#0d1615; --rail-ink:#eef4f2; --rail-ink-2:#9fb3ae; --rail-active:#16302c;
+    --shadow:0 1px 2px rgba(16,25,24,0.06), 0 8px 24px -12px rgba(16,25,24,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --page:#0d1211; --surface:#141b1a; --surface-2:#1a2322;
+      --ink:#eef4f2; --ink-2:#b9c6c3; --ink-3:#7c8b88;
+      --border:rgba(255,255,255,0.10); --border-strong:rgba(255,255,255,0.18);
+      --accent:#3fb3a4; --accent-ink:#04211d; --accent-soft:#16302c; --accent-soft-ink:#6fd3c4;
+      --good:#22b522; --warning:#fab219; --serious:#f0906a; --critical:#e66767;
+      --good-soft:#123018; --warning-soft:#332405; --serious-soft:#3a1f15; --critical-soft:#3a1414;
+      --good-ink:#7fe07f; --warning-ink:#ffcf6b; --serious-ink:#ffab84; --critical-ink:#ff9c9c;
+      --m1:#3987e5; --m2:#d95926; --m3:#199e70; --m4:#c98500;
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --page:#0d1211; --surface:#141b1a; --surface-2:#1a2322;
+    --ink:#eef4f2; --ink-2:#b9c6c3; --ink-3:#7c8b88;
+    --border:rgba(255,255,255,0.10); --border-strong:rgba(255,255,255,0.18);
+    --accent:#3fb3a4; --accent-ink:#04211d; --accent-soft:#16302c; --accent-soft-ink:#6fd3c4;
+    --good:#22b522; --warning:#fab219; --serious:#f0906a; --critical:#e66767;
+    --good-soft:#123018; --warning-soft:#332405; --serious-soft:#3a1f15; --critical-soft:#3a1414;
+    --good-ink:#7fe07f; --warning-ink:#ffcf6b; --serious-ink:#ffab84; --critical-ink:#ff9c9c;
+    --m1:#3987e5; --m2:#d95926; --m3:#199e70; --m4:#c98500;
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--page); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    text-wrap:balance; margin:0;
+  }
+  .tabular{ font-variant-numeric: tabular-nums; }
+  a{color:inherit;}
+
+  .app{ display:flex; min-height:100vh; }
+
+  /* ---------- Rail / sidebar ---------- */
+  .rail{
+    width:248px; flex:0 0 248px; background:var(--rail-bg); color:var(--rail-ink);
+    display:flex; flex-direction:column; padding:22px 14px; gap:4px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .rail-brand{ padding:6px 10px 20px; }
+  .rail-brand .mark{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:9px; background:linear-gradient(155deg,#3fb3a4,#0f6b62);
+    font-size:17px; margin-bottom:10px;
+  }
+  .rail-brand .word{ font-family:"Iowan Old Style",Georgia,serif; font-size:19px; letter-spacing:0.01em; color:#fff; }
+  .rail-brand .sub{ font-size:11.5px; color:var(--rail-ink-2); margin-top:2px; line-height:1.4; }
+  .rail-nav{ display:flex; flex-direction:column; gap:2px; margin-top:6px; }
+  .rail-btn{
+    display:flex; align-items:center; gap:10px; text-align:left;
+    padding:10px 12px; border-radius:9px; border:none; background:transparent;
+    color:var(--rail-ink-2); font-size:13.5px; font-weight:500; cursor:pointer;
+    font-family:inherit;
+  }
+  .rail-btn .ic{ font-size:15px; width:18px; text-align:center; }
+  .rail-btn:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+  .rail-btn.active{ background:var(--rail-active); color:#fff; }
+  .rail-btn .cnt{
+    margin-left:auto; font-size:11px; font-weight:700; padding:1px 7px; border-radius:99px;
+    background:rgba(255,255,255,0.08); color:var(--rail-ink-2);
+  }
+  .rail-btn.active .cnt{ background:rgba(255,255,255,0.16); color:#fff; }
+  .rail-foot{ margin-top:auto; padding:12px 10px 4px; font-size:11px; color:var(--rail-ink-2); line-height:1.6; border-top:1px solid rgba(255,255,255,0.08); }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; min-width:0; padding:30px 40px 80px; max-width:1180px; }
+  .topbar{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:26px; flex-wrap:wrap; }
+  .topbar h1{ font-size:26px; }
+  .topbar .ref{ font-size:12.5px; color:var(--ink-3); }
+  .panel{ display:none; }
+  .panel.active{ display:block; animation:fade .25s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(3px);} to{opacity:1; transform:none;} }
+  @media (prefers-reduced-motion: reduce){ .panel.active{ animation:none; } }
+
+  .lede{ color:var(--ink-2); font-size:14.5px; max-width:66ch; line-height:1.55; margin-bottom:22px; }
+
+  /* KPI row */
+  .kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:12px; margin-bottom:26px; }
+  .kpi{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:16px 18px; box-shadow:var(--shadow);
+  }
+  .kpi .lbl{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); font-weight:600; }
+  .kpi .val{ font-size:28px; font-weight:600; margin-top:6px; }
+  .kpi .val small{ font-size:14px; font-weight:500; color:var(--ink-2); margin-left:3px; }
+  .kpi .delta{ font-size:12px; margin-top:4px; color:var(--ink-2); }
+
+  .section-title{ font-size:15px; font-weight:700; margin:30px 0 12px; display:flex; align-items:center; gap:8px; }
+  .section-title .n{ color:var(--ink-3); font-weight:500; font-size:12.5px; }
+
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); }
+  .pad{ padding:18px 20px; }
+
+  /* issue rows (sparkbar table) */
+  .issue-row{ display:grid; grid-template-columns:1.6fr 3fr auto auto; gap:14px; align-items:center; padding:11px 20px; border-top:1px solid var(--border); }
+  .issue-row:first-child{ border-top:none; }
+  .issue-row .name{ font-size:13.5px; font-weight:600; }
+  .issue-row .track{ height:8px; background:var(--surface-2); border-radius:99px; overflow:hidden; }
+  .issue-row .fill{ height:100%; border-radius:99px; }
+  .issue-row .count{ font-size:13px; font-weight:700; text-align:right; min-width:34px; }
+  .pill{ font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:99px; white-space:nowrap; letter-spacing:.01em; }
+  .pill.good{ background:var(--good-soft); color:var(--good-ink); }
+  .pill.warning{ background:var(--warning-soft); color:var(--warning-ink); }
+  .pill.serious{ background:var(--serious-soft); color:var(--serious-ink); }
+  .pill.critical{ background:var(--critical-soft); color:var(--critical-ink); }
+
+  /* compare bars (module vs module) */
+  .cmp-row{ display:grid; grid-template-columns:150px 1fr 70px; gap:14px; align-items:center; padding:9px 0; }
+  .cmp-row .track{ height:14px; background:var(--surface-2); border-radius:5px; overflow:hidden; display:flex; }
+  .cmp-row .seg{ height:100%; }
+  .cmp-row .name{ font-size:13px; font-weight:600; }
+  .cmp-row .total{ font-size:12.5px; color:var(--ink-2); text-align:right; }
+  .legend{ display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; font-size:12px; color:var(--ink-2); }
+  .legend .sw{ display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+
+  .grid2{ display:grid; grid-template-columns:1.15fr .85fr; gap:16px; }
+  @media (max-width:860px){ .grid2{ grid-template-columns:1fr; } }
+
+  .obs-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:640px){ .obs-grid{ grid-template-columns:1fr; } }
+  .obs{ background:var(--surface-2); border-radius:10px; padding:12px 14px; }
+  .obs .k{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-3); font-weight:700; margin-bottom:4px; }
+  .obs .v{ font-size:13px; line-height:1.45; color:var(--ink); }
+
+  .cause{ border-top:1px solid var(--border); padding:16px 20px; display:grid; grid-template-columns:26px 1fr; gap:12px; }
+  .cause:first-child{ border-top:none; }
+  .cause .dot{ width:10px; height:10px; border-radius:50%; margin-top:6px; }
+  .cause h4{ font-size:14px; margin:0 0 4px; font-family:system-ui,sans-serif; font-weight:700; }
+  .cause p{ font-size:13px; color:var(--ink-2); line-height:1.55; margin:0 0 6px; }
+  .cause .sol{ font-size:13px; color:var(--ink); background:var(--accent-soft); color:var(--accent-soft-ink); padding:8px 12px; border-radius:8px; line-height:1.5; }
+  .cause .sol b{ font-weight:700; }
+
+  .banner{
+    display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:16px 20px; margin-bottom:26px; box-shadow:var(--shadow);
+  }
+  .banner .icon{ font-size:26px; }
+  .banner .txt{ font-size:13px; color:var(--ink-2); line-height:1.5; }
+  .banner .txt b{ color:var(--ink); }
+
+  .foot-note{ font-size:11.5px; color:var(--ink-3); margin-top:34px; line-height:1.6; border-top:1px solid var(--border); padding-top:14px; }
+
+  .privacy-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700;
+    background:var(--accent-soft); color:var(--accent-soft-ink); padding:5px 11px; border-radius:99px;
+  }
+
+  table.rutdef{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.rutdef th{ text-align:left; color:var(--ink-3); font-weight:600; text-transform:uppercase; letter-spacing:.04em; font-size:10.5px; padding:0 0 8px; }
+  table.rutdef td{ padding:9px 0; border-top:1px solid var(--border); color:var(--ink-2); }
+  table.rutdef td.mono{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--ink); }
+  table.rutdef tr.clickable{ cursor:pointer; }
+  table.rutdef tr.clickable:hover td{ color:var(--ink); }
+
+  /* clickable rows / kpis that open the RUT detail modal */
+  .clickable{ cursor:pointer; transition:transform .12s ease, box-shadow .12s ease; }
+  .kpi.clickable:hover{ box-shadow:var(--shadow), 0 0 0 2px var(--accent) inset; }
+  .issue-row.clickable:hover{ background:var(--surface-2); }
+  .clickable .hint{ font-size:10.5px; color:var(--accent); font-weight:700; margin-top:6px; display:flex; align-items:center; gap:3px; }
+
+  /* modal */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(10,14,13,0.55); backdrop-filter:blur(1px);
+    display:none; align-items:flex-start; justify-content:center; padding:6vh 20px; z-index:50; overflow-y:auto;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal{
+    background:var(--surface); border:1px solid var(--border-strong); border-radius:16px;
+    width:100%; max-width:840px; box-shadow:0 20px 60px -20px rgba(0,0,0,0.4); overflow:hidden;
+  }
+  .modal-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:18px 22px; border-bottom:1px solid var(--border); }
+  .modal-head h3{ font-family:"Iowan Old Style",Georgia,serif; font-size:18px; }
+  .modal-head p{ margin:6px 0 0; font-size:12.5px; color:var(--ink-2); max-width:56ch; line-height:1.5; }
+  .modal-close{
+    border:none; background:var(--surface-2); color:var(--ink-2); width:30px; height:30px; border-radius:9px;
+    font-size:15px; cursor:pointer; flex:0 0 auto;
+  }
+  .modal-close:hover{ background:var(--border-strong); color:var(--ink); }
+  .modal-body{ max-height:60vh; overflow-y:auto; }
+  table.detail{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.detail thead th{
+    position:sticky; top:0; background:var(--surface); text-align:left; color:var(--ink-3); font-weight:700;
+    text-transform:uppercase; letter-spacing:.04em; font-size:10px; padding:10px 22px; border-bottom:1px solid var(--border);
+  }
+  table.detail tbody td{ padding:10px 22px; border-top:1px solid var(--border); vertical-align:top; }
+  table.detail tbody tr:hover td{ background:var(--surface-2); }
+  table.detail td.mono{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--ink); white-space:nowrap; }
+  table.detail td.arrow{ color:var(--ink-3); }
+  table.detail td.fix{ color:var(--good-ink); font-weight:700; }
+  .modal-foot{ padding:12px 22px; border-top:1px solid var(--border); font-size:11.5px; color:var(--ink-3); }
+
+  table.detail tbody tr[data-fila]{ cursor:pointer; }
+  table.detail tbody tr[data-fila]:hover td{ background:var(--accent-soft); }
+  table.detail tbody tr[data-fila] td:first-child{ position:relative; }
+
+  dl.record-fields{ margin:0; display:grid; grid-template-columns:1fr; }
+  dl.record-fields .row{ display:grid; grid-template-columns:150px 1fr; gap:14px; padding:11px 22px; border-top:1px solid var(--border); align-items:start; }
+  dl.record-fields .row:first-child{ border-top:none; }
+  dl.record-fields dt{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-3); font-weight:700; margin:0; padding-top:1px; }
+  dl.record-fields dd{ margin:0; font-size:13.5px; color:var(--ink); line-height:1.5; }
+  dl.record-fields dd.mono{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  dl.record-fields dd.muted{ color:var(--ink-3); }
+
+  .excel-btn{
+    display:inline-flex; align-items:center; gap:6px; background:var(--accent); color:var(--accent-ink);
+    font-size:12.5px; font-weight:700; padding:8px 14px; border-radius:9px; text-decoration:none; white-space:nowrap;
+  }
+  .excel-btn:hover{ opacity:.9; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="rail">
+    <div class="rail-brand">
+      <div class="mark">🩺</div>
+      <div class="word">Progesys</div>
+      <div class="sub">Auditoría de datos<br>Solicitudes SNL</div>
+    </div>
+    <div class="rail-nav" id="railNav"></div>
+    <div class="rail-foot">
+      Referencia de fechas: 13‑08‑2026<br>
+      Fuente: base interna de solicitudes (Neon)<br>
+      <a href="/manual" style="color:var(--rail-ink-2);">📘 Manual de uso</a> ·
+      <a href="/logout" style="color:var(--rail-ink-2);">Cerrar sesión</a>
+    </div>
+  </nav>
+
+  <main class="main" id="main"></main>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="modalTitle">RUT mal escritos</h3>
+        <p id="modalSubtitle"></p>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <table class="detail">
+        <thead id="modalHead"><tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>RUT ingresado</th><th>Error</th><th>Corrección sugerida</th></tr></thead>
+        <tbody id="modalBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="recordOverlay" style="z-index:60;">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-head">
+      <div>
+        <p style="margin:0 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); font-weight:700;" id="recordEyebrow"></p>
+        <h3 id="recordTitle">Detalle del registro</h3>
+      </div>
+      <button class="modal-close" id="recordClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:64vh;">
+      <dl class="record-fields" id="recordFields"></dl>
+    </div>
+    <div class="modal-foot" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <span id="recordFoot" style="color:var(--ink-3);"></span>
+      <a id="recordExcelBtn" href="#" target="_blank" rel="noopener" class="excel-btn">📊 Abrir en la planilla</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const MOD_LABEL = {reembolsos:"Reembolsos", informes:"Informes Médicos", otras:"Otras Solicitudes", cd:"CD Pendiente"};
+const SEV_LABEL = {good:"OK", warning:"MEDIA", serious:"ALTA", critical:"CRÍTICA"};
+const SLA_RULES = {reembolsos:14, informes:10, otras:10, cd:10};
+const TIPO_LABEL = {vacio:"Campo vacío", formato:"Formato no reconocible", dv:"Dígito verificador incorrecto"};
+const TIPO_SEV = {vacio:"warning", formato:"serious", dv:"critical"};
+const SHEET_NAME = {reembolsos:"Reembolsos_BASE", informes:"InformesMed_BASE", otras:"OtrasSolicitudes_BASE", cd:"CDPendiente_BASE"};
+
+let EXCEL_SHARE_LINK = "";
+function buildExcelLink(mod, fila){
+  const sheet = SHEET_NAME[mod];
+  const cellRef = "'" + sheet + "'!A" + fila;
+  const sep = EXCEL_SHARE_LINK.includes("?") ? "&" : "?";
+  return EXCEL_SHARE_LINK + sep + "activeCell=" + encodeURIComponent(cellRef) + "&wdActiveSheet=" + encodeURIComponent(sheet);
+}
+
+function computeSev(dias, sla){
+  if(dias<=sla) return 'good';
+  if(dias<=sla*2) return 'warning';
+  if(dias<=sla*4) return 'serious';
+  return 'critical';
+}
+
+let MODULES, MASTER_DATA, SLA_DATA, SLA_SIN_FECHA, ATENCION_DATA, ATENCION_SUMMARY, BAD_RUTS, CAUSAS;
+let RUT_TOTAL, RUT_VALIDO, RUT_VACIO, RUT_FORMATO, RUT_DV, RUT_MAL;
+
+function parseDMY(s){
+  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(s||"");
+  if(!m) return null;
+  return new Date(+m[3], +m[2]-1, +m[1]);
+}
+
+function deriveData(payload){
+  MASTER_DATA = payload.master;
+  EXCEL_SHARE_LINK = payload.excelShareLink || "";
+  CAUSAS = payload.causas;
+
+  SLA_DATA = []; SLA_SIN_FECHA = {}; ATENCION_DATA = []; ATENCION_SUMMARY = {}; BAD_RUTS = [];
+
+  for(const [mod, rows] of Object.entries(MASTER_DATA)){
+    SLA_SIN_FECHA[mod] = 0;
+    let secTotal = 0, secOk = 0;
+    for(const r of rows){
+      if(r.slaEstado === 'sin_fecha'){
+        SLA_SIN_FECHA[mod]++;
+      } else {
+        const sev = r.slaEstado==='fuera' ? computeSev(r.dias, SLA_RULES[mod]) : (r.slaEstado==='invalido' ? 'serious' : 'good');
+        SLA_DATA.push({mod, fila:r.fila, nombre:r.nombre, ingreso:r.ingreso, dias:r.dias, estado:r.slaEstado, sev,
+                        respuesta:r.atencion, sugerida: r.slaEstado==='invalido' ? r.ingresoSugerido : null});
+      }
+      if(r.secEstado){
+        secTotal++;
+        if(r.secEstado==='ok'){ secOk++; }
+        else {
+          const dIng = parseDMY(r.ingreso), dAt = parseDMY(r.atencion);
+          const diff = (dIng && dAt) ? Math.round((dAt-dIng)/86400000) : null;
+          ATENCION_DATA.push({mod, fila:r.fila, nombre:r.nombre, ingreso:r.ingreso, atencion:r.atencion, diff, swapFix:r.atencionSugerida});
+        }
+      }
+      if(r.rutEstado !== 'valido'){
+        BAD_RUTS.push({mod, modLabel:MOD_LABEL[mod], fila:r.fila, nombre:r.nombre, rut: r.rut || '(vacío)', tipo:r.rutEstado, sugerencia:r.rutSugerencia});
+      }
+    }
+    ATENCION_SUMMARY[mod] = {total:secTotal, ok:secOk, bad:secTotal-secOk};
+  }
+
+  MODULES = payload.modulesMeta.map(m => {
+    const rows = MASTER_DATA[m.id] || [];
+    const sinError = rows.filter(r=>r.incOk).length;
+    return {
+      id: m.id, nombre: m.nombre, icon: m.icon, descripcion: m.descripcion,
+      gestion: m.gestion, observacion: m.observacion, issues: m.issues,
+      total: rows.length, sinError, conError: rows.length - sinError,
+      rut: {
+        valido: rows.filter(r=>r.rutEstado==='valido').length,
+        vacio: rows.filter(r=>r.rutEstado==='vacio').length,
+        formato: rows.filter(r=>r.rutEstado==='formato').length,
+        dv: rows.filter(r=>r.rutEstado==='dv').length,
+      },
+    };
+  });
+
+  RUT_TOTAL = MODULES.reduce((a,m)=>a+m.total,0);
+  RUT_VALIDO = MODULES.reduce((a,m)=>a+m.rut.valido,0);
+  RUT_VACIO = MODULES.reduce((a,m)=>a+m.rut.vacio,0);
+  RUT_FORMATO = MODULES.reduce((a,m)=>a+m.rut.formato,0);
+  RUT_DV = MODULES.reduce((a,m)=>a+m.rut.dv,0);
+  RUT_MAL = RUT_VACIO+RUT_FORMATO+RUT_DV;
+}
+
+function pct(n,d){ return (100*n/d).toFixed(1); }
+function esc(s){ return String(s); }
+
+function sparkRow(t,c,total,sev,opts){
+  opts = opts || {};
+  const w = Math.max(2, (c/total*100)).toFixed(1);
+  const sevColor = `var(--${sev})`;
+  const clickable = opts.mod || opts.tipo || opts.kind;
+  const estadoAttr = opts.kind==="sla" ? (opts.estado || "fuera") : "";
+  const attrs = clickable ? `class="issue-row clickable" data-kind="${opts.kind||'rut'}" data-mod="${opts.mod||''}" data-tipo="${opts.tipo||''}" data-sev="${opts.filterSev||''}" data-estado="${estadoAttr}" data-filter="${opts.filterKey||''}" data-title="${esc(opts.title||t)}"` : `class="issue-row"`;
+  return `<div ${attrs}>
+    <div class="name">${esc(t)}</div>
+    <div class="track"><div class="fill" style="width:${w}%;background:${sevColor}"></div></div>
+    <div class="count tabular">${c}</div>
+    <div class="pill ${sev}">${SEV_LABEL[sev]}</div>
+  </div>`;
+}
+
+function moduleSlaSummary(m){
+  const rows = SLA_DATA.filter(r=>r.mod===m.id);
+  const fuera = rows.filter(r=>r.estado==="fuera");
+  const invalido = rows.filter(r=>r.estado==="invalido");
+  const dentro = rows.filter(r=>r.estado==="dentro");
+  const medibles = dentro.length + fuera.length; // excluye ingreso futuro (no medible)
+  return {
+    sla: SLA_RULES[m.id],
+    total: rows.length,
+    medibles,
+    fuera: fuera.length,
+    dentro: dentro.length,
+    invalido: invalido.length,
+    sinFecha: SLA_SIN_FECHA[m.id]||0,
+    bySev: {
+      warning: fuera.filter(r=>r.sev==="warning").length,
+      serious: fuera.filter(r=>r.sev==="serious").length,
+      critical: fuera.filter(r=>r.sev==="critical").length,
+    }
+  };
+}
+
+function moduleAtencionSection(m){
+  const s = ATENCION_SUMMARY[m.id];
+  return `
+  <div class="section-title">Secuencia de fechas <span class="n">— la fecha de atención debe ser anterior a la fecha de ingreso/formulario</span></div>
+  <div class="kpis" style="margin-bottom:12px">
+    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="secComparable" data-title="Casos comparables — ${m.nombre}">
+      <div class="lbl">Comparables</div>
+      <div class="val tabular">${s.total}</div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="secOk" data-title="Atención antes del ingreso — ${m.nombre}">
+      <div class="lbl">Consistentes (atención antes del ingreso)</div>
+      <div class="val tabular" style="color:var(--good-ink)">${s.ok}<small>${pct(s.ok,s.total)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi clickable" data-kind="atencion" data-mod="${m.id}" data-title="Atención no anterior al ingreso — ${m.nombre}">
+      <div class="lbl">Inconsistentes</div>
+      <div class="val tabular" style="color:var(--critical-ink)">${s.bad}<small>${pct(s.bad,s.total)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+  </div>
+  <div class="foot-note" style="margin-top:-4px;margin-bottom:14px">
+    Se excluyen del cálculo los registros cuya fecha de ingreso ya está marcada como “Ingreso con fecha futura” (arriba), porque comparar contra una fecha de ingreso inválida no sería concluyente.
+  </div>
+  `;
+}
+
+function moduleSlaSection(m){
+  const s = moduleSlaSummary(m);
+  const rangeLbl = (lo,hi)=> hi ? `${lo}–${hi} días hábiles` : `más de ${lo-1} días hábiles`;
+  return `
+  <div class="section-title">Cumplimiento de SLA <span class="n">— ${s.sla} días hábiles desde el ingreso, sin fines de semana ni feriados 2026</span></div>
+  <div class="kpis" style="margin-bottom:12px">
+    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="slaMedible" data-title="Medibles — ${m.nombre}">
+      <div class="lbl">Medibles (fecha de ingreso válida)</div>
+      <div class="val tabular">${s.medibles}</div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="slaDentro" data-title="Dentro de SLA — ${m.nombre}">
+      <div class="lbl">Dentro de SLA</div>
+      <div class="val tabular" style="color:var(--good-ink)">${s.dentro}<small>${pct(s.dentro,s.medibles)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi clickable" data-kind="sla" data-estado="fuera" data-mod="${m.id}" data-title="Fuera de SLA — ${m.nombre}">
+      <div class="lbl">Fuera de SLA</div>
+      <div class="val tabular" style="color:var(--critical-ink)">${s.fuera}<small>${pct(s.fuera,s.medibles)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    ${s.invalido>0 ? `<div class="kpi clickable" data-kind="sla" data-estado="invalido" data-mod="${m.id}" data-title="Fecha de ingreso inconsistente (futura) — ${m.nombre}">
+      <div class="lbl">Ingreso con fecha futura</div>
+      <div class="val tabular" style="color:var(--serious-ink)">${s.invalido}</div>
+      <div class="hint">No se puede medir SLA →</div>
+    </div>` : ``}
+    ${s.sinFecha>0 ? `<div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="sinFecha" data-title="Sin fecha de ingreso — ${m.nombre}">
+      <div class="lbl">Sin fecha de ingreso</div>
+      <div class="val tabular" style="color:var(--ink-3)">${s.sinFecha}</div>
+      <div class="hint">Ver el detalle →</div>
+    </div>` : ``}
+  </div>
+  <div class="card">
+    ${s.bySev.warning ? sparkRow(rangeLbl(s.sla+1, s.sla*2), s.bySev.warning, s.medibles, "warning", {kind:"sla", mod:m.id, filterSev:"warning", title:`Fuera de SLA (leve) — ${m.nombre}`}) : ""}
+    ${s.bySev.serious ? sparkRow(rangeLbl(s.sla*2+1, s.sla*4), s.bySev.serious, s.medibles, "serious", {kind:"sla", mod:m.id, filterSev:"serious", title:`Fuera de SLA (grave) — ${m.nombre}`}) : ""}
+    ${s.bySev.critical ? sparkRow(rangeLbl(s.sla*4+1, null), s.bySev.critical, s.medibles, "critical", {kind:"sla", mod:m.id, filterSev:"critical", title:`Fuera de SLA (crítico) — ${m.nombre}`}) : ""}
+  </div>
+  <div class="foot-note" style="margin-top:14px">
+    La base no registra una fecha de cierre para este módulo, por lo que el indicador mide días hábiles transcurridos entre el ingreso y hoy (13‑08‑2026) — no necesariamente el tiempo real que tardó cada caso en resolverse si ya fue gestionado.
+    ${s.invalido>0 ? ` ${s.invalido} registros tienen una fecha de ingreso posterior a hoy (dato inconsistente, ya señalado como “Fecha de formulario futura”) — se excluyen del cálculo de SLA porque no es posible medir un plazo con una fecha de inicio inválida.` : ``}
+    ${s.sinFecha>0 ? ` ${s.sinFecha} registros no tienen fecha de ingreso y tampoco se pueden medir; ya están señalados en “Inconsistencias de fecha”.` : ``}
+  </div>
+  `;
+}
+
+function moduleKpis(m){
+  const mal = m.rut.vacio+m.rut.formato+m.rut.dv;
+  const rutKpi = mal>0
+    ? `<div class="kpi clickable" data-mod="${m.id}" data-title="RUT mal escritos — ${m.nombre}">
+         <div class="lbl">RUT con problema</div>
+         <div class="val tabular" style="color:var(--serious-ink)">${mal}</div>
+         <div class="hint">Ver el detalle →</div>
+       </div>`
+    : `<div class="kpi"><div class="lbl">RUT con problema</div><div class="val tabular" style="color:var(--good-ink)">0</div></div>`;
+  return `<div class="kpis">
+    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="total" data-title="Todos los registros — ${m.nombre}">
+      <div class="lbl">Registros en base</div>
+      <div class="val tabular">${m.total}</div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="sinError" data-title="Sin inconsistencia de fecha — ${m.nombre}">
+      <div class="lbl">Sin inconsistencia</div>
+      <div class="val tabular">${m.sinError}<small>${pct(m.sinError,m.total)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="conError" data-title="Con inconsistencia de fecha — ${m.nombre}">
+      <div class="lbl">Con inconsistencia de fecha</div>
+      <div class="val tabular" style="color:var(--critical-ink)">${m.conError}<small>${pct(m.conError,m.total)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    ${rutKpi}
+  </div>`;
+}
+
+function moduleRutTable(m){
+  const rows = [
+    ["RUT válido", m.rut.valido, "good", null],
+    ["Campo vacío", m.rut.vacio, "warning", "vacio"],
+    ["Formato no reconocible", m.rut.formato, "serious", "formato"],
+    ["Dígito verificador incorrecto", m.rut.dv, "critical", "dv"],
+  ].filter(r=>r[1]>0);
+  return `<div class="card">
+    ${rows.map(r=> r[3]
+      ? sparkRow(r[0], r[1], m.total, r[2], {mod:m.id, tipo:r[3], title:`${r[0]} — ${m.nombre}`})
+      : sparkRow(r[0], r[1], m.total, r[2], {kind:"master", mod:m.id, filterKey:"rutValido", title:`${r[0]} — ${m.nombre}`})
+    ).join("")}
+  </div>`;
+}
+
+function renderModulePanel(m){
+  return `
+  <div class="lede">${m.descripcion}</div>
+  ${moduleKpis(m)}
+  <div class="grid2">
+    <div>
+      <div class="section-title">Inconsistencias de fecha detectadas <span class="n">— sobre ${m.total} registros</span></div>
+      <div class="card">${m.issues.map(i=>sparkRow(i.t,i.c,m.total,i.sev)).join("")}</div>
+
+      <div class="section-title">Calidad del RUT <span class="n">— solo conteos, sin exponer datos de pacientes</span></div>
+      ${moduleRutTable(m)}
+    </div>
+    <div>
+      <div class="section-title">Estado de gestión</div>
+      <div class="obs-grid">
+        <div class="obs" style="grid-column:1/-1"><div class="k">Gestión</div><div class="v">${m.gestion}</div></div>
+        <div class="obs" style="grid-column:1/-1"><div class="k">Observación principal</div><div class="v">${m.observacion}</div></div>
+      </div>
+    </div>
+  </div>
+
+  ${moduleAtencionSection(m)}
+  ${moduleSlaSection(m)}
+  `;
+}
+
+function renderResumen(){
+  const totalConError = MODULES.reduce((a,m)=>a+m.conError,0);
+  const mColors = ["m1","m2","m3","m4"];
+  const maxTotal = Math.max(...MODULES.map(m=>m.total));
+  return `
+  <div class="lede">Vista consolidada de las cuatro bases de solicitudes SNL. Los datos de pacientes (RUT, nombre) permanecen en la base interna; en este panel puedes ver el conteo agregado y, si necesitas corregir algo, hacer clic para ver el detalle puntual de los RUT con problema.</div>
+
+  <div class="banner">
+    <div class="icon">✅</div>
+    <div class="txt"><b>${RUT_VALIDO} de ${RUT_TOTAL} RUT (${pct(RUT_VALIDO,RUT_TOTAL)}%)</b> están correctamente escritos y validados con el algoritmo oficial de dígito verificador. <b>${RUT_MAL} registros</b> requieren corrección — ver pestaña “Auditoría de RUT”.</div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Solicitudes totales</div><div class="val tabular">${RUT_TOTAL}</div></div>
+    <div class="kpi"><div class="lbl">Con inconsistencia de fecha</div><div class="val tabular" style="color:var(--critical-ink)">${totalConError}<small>${pct(totalConError,RUT_TOTAL)}%</small></div></div>
+    <div class="kpi clickable" data-mod="" data-title="RUT mal escritos — Todos los módulos">
+      <div class="lbl">RUT mal escritos</div>
+      <div class="val tabular" style="color:var(--serious-ink)">${RUT_MAL}<small>${pct(RUT_MAL,RUT_TOTAL)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi"><div class="lbl">Módulos auditados</div><div class="val tabular">4</div></div>
+  </div>
+
+  <div class="section-title">Volumen e inconsistencias por módulo</div>
+  <div class="card pad">
+    ${MODULES.map((m,i)=>`
+      <div class="cmp-row">
+        <div class="name">${m.icon} ${m.nombre}</div>
+        <div class="track">
+          <div class="seg" style="width:${(m.sinError/maxTotal*100)}%;background:var(--${mColors[i]});opacity:.35"></div>
+          <div class="seg" style="width:${(m.conError/maxTotal*100)}%;background:var(--${mColors[i]})"></div>
+        </div>
+        <div class="total tabular">${m.total} casos</div>
+      </div>
+    `).join("")}
+    <div class="legend">
+      <span><span class="sw" style="background:var(--ink-3)"></span>tramo tenue = sin error</span>
+      <span><span class="sw" style="background:var(--ink)"></span>tramo sólido = con inconsistencia de fecha</span>
+    </div>
+  </div>
+
+  <div class="section-title">Causas raíz identificadas y solución propuesta</div>
+  <div class="card">
+    ${CAUSAS.map(c=>`
+      <div class="cause">
+        <div class="dot" style="background:var(--${c.sev})"></div>
+        <div>
+          <h4>${c.h}</h4>
+          <p>${c.p}</p>
+          <div class="sol"><b>Solución:</b> ${c.s}</div>
+        </div>
+      </div>
+    `).join("")}
+  </div>
+
+  <div class="foot-note">
+    Este resumen se calcula directamente sobre las cuatro bases activas del archivo de solicitudes. Las cifras pueden diferir levemente de análisis anteriores si la base fue actualizada o depurada desde entonces.
+  </div>
+  `;
+}
+
+function renderRutTab(){
+  const rows = [
+    ["Reembolsos", MODULES[0]],["Informes Médicos", MODULES[1]],
+    ["Otras Solicitudes", MODULES[2]],["CD Pendiente", MODULES[3]],
+  ];
+  return `
+  <div class="lede">Cada RUT se valida con el algoritmo oficial chileno de dígito verificador (módulo 11). Por defecto el portal solo muestra conteos — haz clic en cualquier cifra en rojo/naranjo para ver el detalle de esos casos puntuales y corregirlos.</div>
+
+  <div class="privacy-badge">🔒 Los datos de pacientes se muestran solo al hacer clic, para fines de corrección</div>
+
+  <div class="kpis" style="margin-top:16px">
+    <div class="kpi"><div class="lbl">RUT analizados</div><div class="val tabular">${RUT_TOTAL}</div></div>
+    <div class="kpi"><div class="lbl">RUT válidos</div><div class="val tabular" style="color:var(--good-ink)">${RUT_VALIDO}<small>${pct(RUT_VALIDO,RUT_TOTAL)}%</small></div></div>
+    <div class="kpi clickable" data-mod="" data-title="RUT mal escritos — Todos los módulos">
+      <div class="lbl">RUT mal escritos</div>
+      <div class="val tabular" style="color:var(--critical-ink)">${RUT_MAL}<small>${pct(RUT_MAL,RUT_TOTAL)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi"><div class="lbl">Pacientes recurrentes</div><div class="val tabular">253<small>RUT repetidos</small></div></div>
+  </div>
+
+  <div class="section-title">Detalle de errores por tipo <span class="n">— total de las 4 bases, clic para ver casos</span></div>
+  <div class="card">
+    ${sparkRow("Formato no reconocible (falta guion, largo inválido, texto en la celda)", RUT_FORMATO, RUT_TOTAL, "serious", {tipo:"formato", title:"RUT con formato no reconocible"})}
+    ${sparkRow("Dígito verificador incorrecto", RUT_DV, RUT_TOTAL, "critical", {tipo:"dv", title:"RUT con dígito verificador incorrecto"})}
+    ${sparkRow("Campo de RUT vacío", RUT_VACIO, RUT_TOTAL, "warning", {tipo:"vacio", title:"RUT con campo vacío"})}
+  </div>
+
+  <div class="section-title">Por módulo <span class="n">— clic en “con problema” para ver el detalle</span></div>
+  <div class="card pad">
+    <table class="rutdef">
+      <thead><tr><th>Módulo</th><th>Registros</th><th>Válidos</th><th>Con problema</th><th>% correcto</th></tr></thead>
+      <tbody>
+        ${rows.map(([label,m])=>{
+          const mal = m.rut.vacio+m.rut.formato+m.rut.dv;
+          const malCell = mal>0
+            ? `<td class="mono" style="color:var(--serious-ink);font-weight:700;text-decoration:underline;cursor:pointer" data-mod="${m.id}" data-title="RUT mal escritos — ${m.nombre}">${mal}</td>`
+            : `<td class="mono">0</td>`;
+          return `<tr class="${mal>0?'clickable':''}" ${mal>0?`data-mod="${m.id}" data-title="RUT mal escritos — ${m.nombre}"`:''}><td>${m.icon} ${label}</td><td class="mono">${m.total}</td><td class="mono">${m.rut.valido}</td>${malCell}<td class="mono">${pct(m.rut.valido,m.total)}%</td></tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-title">¿Cómo se validó?</div>
+  <div class="card pad" style="font-size:13px; color:var(--ink-2); line-height:1.6;">
+    Se aplicó el algoritmo estándar de dígito verificador chileno (módulo 11) a la columna de RUT de cada base: se normaliza el texto (se quitan puntos y espacios), se separa el número del dígito verificador, y se recalcula el dígito esperado. Un RUT se marca como <b style="color:var(--ink)">mal escrito</b> si no calza con el formato esperado, si el dígito verificador no corresponde al número, o si el campo quedó vacío.
+  </div>
+
+  <div class="section-title">Solución propuesta</div>
+  <div class="card">
+    <div class="cause">
+      <div class="dot" style="background:var(--serious)"></div>
+      <div>
+        <h4>Validar el RUT en el momento del ingreso</h4>
+        <p>Actualmente el formulario acepta cualquier texto en el campo de RUT, lo que permite errores de digitación, RUT sin dígito verificador o con formato inconsistente (con o sin puntos, con o sin guion).</p>
+        <div class="sol"><b>Solución:</b> agregar una validación en el formulario (JavaScript o Google Apps Script) que calcule el dígito verificador en tiempo real y bloquee el envío si no coincide. Esto evita que sigan ingresando los ${RUT_MAL} casos detectados y previene nuevos errores hacia adelante.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-note">Los ${RUT_MAL} RUT con problema quedan identificados por fila en la base interna (columna “Rut”, hojas *_BASE), lista para corrección directa por el equipo. Usa el detalle de arriba solo con fines de corrección de datos.</div>
+  `;
+}
+
+function build(){
+  const TABS = [
+    {id:"resumen", label:"Resumen general", icon:"📊", render:renderResumen, count:null},
+    ...MODULES.map(m=>({id:m.id, label:m.nombre, icon:m.icon, render:()=>renderModulePanel(m), count:m.conError})),
+    {id:"rut", label:"Auditoría de RUT", icon:"🪪", render:renderRutTab, count:RUT_MAL},
+  ];
+
+  const nav = document.getElementById("railNav");
+  nav.innerHTML = TABS.map(t=>`
+    <button class="rail-btn" data-tab="${t.id}">
+      <span class="ic">${t.icon}</span><span>${t.label}</span>
+      ${t.count!==null ? `<span class="cnt tabular">${t.count}</span>` : ``}
+    </button>
+  `).join("");
+
+  const main = document.getElementById("main");
+  main.innerHTML = `
+    <div class="topbar">
+      <h1 id="pageTitle"></h1>
+      <div class="ref">Fecha de referencia del análisis: 13‑08‑2026</div>
+    </div>
+    ${TABS.map(t=>`<div class="panel" id="panel-${t.id}"></div>`).join("")}
+  `;
+
+  TABS.forEach(t=>{ document.getElementById(`panel-${t.id}`).innerHTML = t.render(); });
+
+  function show(id){
+    TABS.forEach(t=>{
+      document.getElementById(`panel-${t.id}`).classList.toggle("active", t.id===id);
+    });
+    document.querySelectorAll(".rail-btn").forEach(b=>b.classList.toggle("active", b.dataset.tab===id));
+    document.getElementById("pageTitle").textContent = TABS.find(t=>t.id===id).label;
+  }
+
+  nav.addEventListener("click", e=>{
+    const btn = e.target.closest(".rail-btn");
+    if(!btn) return;
+    show(btn.dataset.tab);
+  });
+
+  show("resumen");
+}
+
+async function init(){
+  const main = document.getElementById("main");
+  main.innerHTML = `<div style="padding:60px 0; text-align:center; color:var(--ink-3); font-size:14px;">Cargando datos desde la base…</div>`;
+  try{
+    const res = await fetch("/api/dashboard-data", {credentials:"same-origin"});
+    if(res.status === 401){ location.href = "/login"; return; }
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const payload = await res.json();
+    deriveData(payload);
+    build();
+  } catch(err){
+    main.innerHTML = `<div style="padding:60px 20px; text-align:center; color:var(--critical-ink);">
+      No se pudieron cargar los datos del panel.<br><span style="color:var(--ink-3); font-size:13px;">${esc(err.message||err)}</span>
+      <div style="margin-top:16px;"><button onclick="init()" style="padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer;">Reintentar</button></div>
+    </div>`;
+  }
+}
+init();
+
+/* ---------- RUT detail modal ---------- */
+const overlay = document.getElementById("modalOverlay");
+const modalTitle = document.getElementById("modalTitle");
+const modalSubtitle = document.getElementById("modalSubtitle");
+const modalBody = document.getElementById("modalBody");
+const modalFoot = document.getElementById("modalFoot");
+
+function openRutModal(mod, tipo, title){
+  document.getElementById("modalHead").innerHTML = `<tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>RUT ingresado</th><th>Error</th><th>Corrección sugerida</th></tr>`;
+  const items = BAD_RUTS.filter(r => (!mod || r.mod===mod) && (!tipo || r.tipo===tipo));
+  modalTitle.textContent = title || "RUT mal escritos";
+  modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} — dato mostrado solo para corrección directa en la base interna.`;
+  modalBody.innerHTML = items.map(r => `
+    <tr data-fila="${r.fila}" data-mod="${r.mod}">
+      <td>${r.modLabel}</td>
+      <td class="mono">${r.fila}</td>
+      <td>${esc(r.nombre)}</td>
+      <td class="mono">${esc(r.rut)}</td>
+      <td><span class="pill ${TIPO_SEV[r.tipo]}">${TIPO_LABEL[r.tipo]}</span></td>
+      <td class="mono ${r.sugerencia?'fix':'arrow'}">${r.sugerencia ? '→ '+r.sugerencia : '— revisar manualmente'}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="6" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
+  modalFoot.textContent = "Haz clic en un caso para ver el detalle completo, incluido el RUT, y abrir la planilla en esa fila.";
+  overlay.classList.add("open");
+}
+
+function parseDMY(s){
+  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(s||"");
+  if(!m) return null;
+  return new Date(+m[3], +m[2]-1, +m[1]);
+}
+
+function openAtencionModal(mod, title){
+  document.getElementById("modalHead").innerHTML = `<tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>Fecha de ingreso</th><th>Fecha de atención</th><th>Diferencia</th><th>Corrección sugerida</th></tr>`;
+  const items = ATENCION_DATA.filter(r => !mod || r.mod===mod).slice().sort((a,b)=> b.diff - a.diff);
+  modalTitle.textContent = title || "Atención no anterior al ingreso";
+  modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} donde la atención no es anterior al ingreso — ordenados de mayor a menor diferencia.`;
+  modalBody.innerHTML = items.map(r => {
+    const badge = r.diff === 0
+      ? `<span class="pill warning" style="margin-left:4px">MISMO DÍA</span>`
+      : `<span class="pill critical" style="margin-left:4px">POSTERIOR</span>`;
+    return `<tr data-fila="${r.fila}" data-mod="${r.mod}">
+      <td>${MOD_LABEL[r.mod]}</td>
+      <td class="mono">${r.fila}</td>
+      <td>${esc(r.nombre)}</td>
+      <td class="mono">${r.ingreso}</td>
+      <td class="mono">${r.atencion} ${badge}</td>
+      <td class="mono">${r.diff} día${r.diff===1?'':'s'}</td>
+      <td class="mono ${r.swapFix?'fix':'arrow'}">${r.swapFix ? '→ '+r.swapFix+' (día/mes invertido)' : '— revisar manualmente'}</td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="7" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
+  modalFoot.textContent = "Regla aplicada: la fecha de atención debe ser estrictamente MENOR a la fecha de ingreso/formulario. Haz clic en un caso para ver el detalle completo y abrir la planilla en esa fila.";
+  overlay.classList.add("open");
+}
+
+function openSlaModal(mod, sevFilter, title, estado){
+  estado = estado || "fuera";
+  modalTitle.textContent = title || "Fuera de SLA";
+
+  if(estado === "invalido"){
+    document.getElementById("modalHead").innerHTML = `<tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>Fecha de ingreso registrada</th><th>Fecha corregida (día/mes invertido)</th><th>Fecha de atención (referencia)</th></tr>`;
+    const items = SLA_DATA.filter(r => r.estado==="invalido" && (!mod || r.mod===mod))
+                           .slice().sort((a,b)=> parseDMY(b.ingreso) - parseDMY(a.ingreso));
+    modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} con fecha de ingreso posterior a hoy (13‑08‑2026) — en el 100% de los casos, invertir día y mes produce una fecha coherente dentro del rango real de la base.`;
+    modalBody.innerHTML = items.map(r => `
+      <tr data-fila="${r.fila}" data-mod="${r.mod}">
+        <td>${MOD_LABEL[r.mod]}</td>
+        <td class="mono">${r.fila}</td>
+        <td>${esc(r.nombre)}</td>
+        <td class="mono" style="color:var(--serious-ink)">${r.ingreso} <span class="pill serious" style="margin-left:4px">FUTURA</span></td>
+        <td class="mono" style="color:var(--good-ink);font-weight:700">${r.sugerida || '—'}</td>
+        <td class="mono" style="color:var(--ink-2)">${r.respuesta ? esc(r.respuesta) : '— sin registrar'}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="6" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
+    modalFoot.textContent = "Estos registros ya están contabilizados como “Fecha de formulario futura” en las inconsistencias de fecha del módulo. La causa es un desorden día/mes en el ingreso de la fecha (ver sección “Causas raíz y solución” en Resumen general) — la columna “Fecha corregida” muestra el resultado de invertir día y mes, que en todos los casos cae dentro del rango de fechas reales de la base.";
+    overlay.classList.add("open");
+    return;
+  }
+
+  document.getElementById("modalHead").innerHTML = `<tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>Fecha de ingreso</th><th>Fecha de atención (referencia médica)</th><th>Días hábiles transcurridos</th><th>SLA del módulo</th></tr>`;
+  let items = SLA_DATA.filter(r => r.estado==="fuera" && (!mod || r.mod===mod) && (!sevFilter || r.sev===sevFilter));
+  items = items.slice().sort((a,b)=> b.dias - a.dias);
+
+  let posteriorCount = 0;
+  const rowsHtml = items.map(r => {
+    let respCell;
+    if(!r.respuesta){
+      respCell = `<td class="mono arrow">— sin registrar</td>`;
+    } else {
+      const dIng = parseDMY(r.ingreso), dResp = parseDMY(r.respuesta);
+      if(dIng && dResp && dResp > dIng){
+        posteriorCount++;
+        respCell = `<td class="mono" style="color:var(--critical-ink)">${esc(r.respuesta)} <span class="pill critical" style="margin-left:4px">POSTERIOR AL INGRESO</span></td>`;
+      } else {
+        respCell = `<td class="mono" style="color:var(--ink-2)">${esc(r.respuesta)}</td>`;
+      }
+    }
+    return `<tr data-fila="${r.fila}" data-mod="${r.mod}">
+      <td>${MOD_LABEL[r.mod]}</td>
+      <td class="mono">${r.fila}</td>
+      <td>${esc(r.nombre)}</td>
+      <td class="mono">${r.ingreso}</td>
+      ${respCell}
+      <td class="mono"><span class="pill ${r.sev}">${r.dias} días</span></td>
+      <td class="mono" style="color:var(--ink-3)">${SLA_RULES[r.mod]} días</td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="7" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
+  modalBody.innerHTML = rowsHtml;
+
+  modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} fuera de SLA · ${posteriorCount} con atención registrada después del ingreso — ordenados de mayor a menor atraso.`;
+  modalFoot.textContent = "Días hábiles = lunes a viernes, sin contar los 16 feriados de Chile 2026, medidos desde el ingreso hasta el 13‑08‑2026 (no existe un campo de fecha de cierre en la base). La columna “Fecha de atención” es un dato de referencia médica cargado por el ejecutivo o el paciente — que sea ANTERIOR al ingreso es normal (suele referirse a una atención ya ocurrida). Cuando aparece marcada “POSTERIOR AL INGRESO”, la fecha de atención quedó registrada después de que se ingresó el caso — una secuencia lógicamente inconsistente, ya contabilizada en “Inconsistencias de fecha” de cada módulo. En Reembolsos ese campo no está registrado en el archivo fuente.";
+  overlay.classList.add("open");
+}
+
+function closeRutModal(){ overlay.classList.remove("open"); }
+
+/* ---------- Listas genéricas sobre MASTER_DATA (todo registro, filtrado) ---------- */
+const MASTER_FILTERS = {
+  total: r => true,
+  sinError: r => r.incOk,
+  conError: r => !r.incOk,
+  rutValido: r => r.rutEstado === "valido",
+  slaMedible: r => r.slaEstado === "dentro" || r.slaEstado === "fuera",
+  slaDentro: r => r.slaEstado === "dentro",
+  sinFecha: r => r.slaEstado === "sin_fecha",
+  secComparable: r => r.secEstado !== null,
+  secOk: r => r.secEstado === "ok",
+};
+
+function rowMeta(filterKey, r){
+  if(filterKey==="rutValido") return {text:"RUT válido", sev:"good"};
+  if(filterKey==="slaDentro") return {text:(r.dias!=null ? r.dias+" días hábiles":"—"), sev:"good"};
+  if(filterKey==="slaMedible") return {text:(r.dias!=null ? r.dias+" días hábiles ("+(r.slaEstado==="fuera"?"fuera":"dentro")+")":"—"), sev:(r.slaEstado==="fuera"?"critical":"good")};
+  if(filterKey==="sinFecha") return {text:"Sin fecha de ingreso", sev:"warning"};
+  if(filterKey==="secComparable") return {text:(r.secEstado==="ok"?"Antes del ingreso":r.secEstado==="mismo_dia"?"Mismo día":r.secEstado==="posterior"?"Posterior al ingreso":"—"), sev:(r.secEstado==="ok"?"good":r.secEstado==="mismo_dia"?"warning":"critical")};
+  if(filterKey==="secOk") return {text:"Antes del ingreso", sev:"good"};
+  // total / sinError / conError
+  return {text: r.incTexto || "—", sev: r.incOk ? "good" : "critical"};
+}
+
+function openMasterList(mod, filterKey, title){
+  document.getElementById("modalHead").innerHTML = `<tr><th>Fila en base</th><th>Nombre</th><th>Servicio</th><th>Fecha de ingreso</th><th>Estado</th></tr>`;
+  const pred = MASTER_FILTERS[filterKey] || (()=>true);
+  const items = (MASTER_DATA[mod] || []).filter(pred).slice().sort((a,b)=> a.fila - b.fila);
+  modalTitle.textContent = title || "Registros";
+  modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} — haz clic en uno para ver el detalle completo, incluido el RUT.`;
+  modalBody.innerHTML = items.map(r => {
+    const meta = rowMeta(filterKey, r);
+    return `<tr data-fila="${r.fila}" data-mod="${mod}">
+      <td class="mono">${r.fila}</td>
+      <td>${esc(r.nombre)}</td>
+      <td style="color:var(--ink-2)">${esc(r.servicio||'—')}</td>
+      <td class="mono">${r.ingreso || '— sin registrar'}</td>
+      <td><span class="pill ${meta.sev}">${esc(meta.text)}</span></td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="5" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
+  modalFoot.textContent = "Haz clic en un caso para ver el detalle completo, incluido el RUT, y abrir la planilla en esa fila.";
+  overlay.classList.add("open");
+}
+
+/* ---------- Detalle de un registro puntual (incluye RUT + botón a la planilla) ---------- */
+const recordOverlay = document.getElementById("recordOverlay");
+const recordEyebrow = document.getElementById("recordEyebrow");
+const recordTitle = document.getElementById("recordTitle");
+const recordFields = document.getElementById("recordFields");
+const recordFoot = document.getElementById("recordFoot");
+const recordExcelBtn = document.getElementById("recordExcelBtn");
+
+const RUT_ESTADO_LABEL = {valido:"Válido", vacio:"Campo vacío", formato:"Formato no reconocible", dv:"Dígito verificador incorrecto"};
+const RUT_ESTADO_SEV = {valido:"good", vacio:"warning", formato:"serious", dv:"critical"};
+const SLA_ESTADO_LABEL = {dentro:"Dentro de SLA", fuera:"Fuera de SLA", invalido:"No medible (fecha futura)", sin_fecha:"No medible (sin fecha)"};
+const SLA_ESTADO_SEV = {dentro:"good", fuera:"critical", invalido:"serious", sin_fecha:"warning"};
+const SEC_ESTADO_LABEL = {ok:"Antes del ingreso", mismo_dia:"Mismo día", posterior:"Posterior al ingreso"};
+const SEC_ESTADO_SEV = {ok:"good", mismo_dia:"warning", posterior:"critical"};
+
+function fieldRow(label, valueHtml){
+  return `<div class="row"><dt>${label}</dt><dd>${valueHtml}</dd></div>`;
+}
+
+function openRecordModal(mod, fila){
+  const r = (MASTER_DATA[mod]||[]).find(x => x.fila === Number(fila));
+  if(!r) return;
+  recordEyebrow.textContent = `${MOD_LABEL[mod]} · Fila ${r.fila}`;
+  recordTitle.textContent = r.nombre;
+
+  const rutHtml = r.rut
+    ? `${esc(r.rut)} <span class="pill ${RUT_ESTADO_SEV[r.rutEstado]}" style="margin-left:6px">${RUT_ESTADO_LABEL[r.rutEstado]}</span>${r.rutSugerencia ? ` <span style="color:var(--good-ink);font-weight:700">→ ${r.rutSugerencia}</span>` : ``}`
+    : `<span class="muted">— sin registrar</span> <span class="pill warning" style="margin-left:6px">Campo vacío</span>`;
+
+  let slaHtml = `<span class="muted">No medible</span>`;
+  if(r.slaEstado === "dentro" || r.slaEstado === "fuera"){
+    slaHtml = `${r.dias} días hábiles transcurridos <span class="pill ${SLA_ESTADO_SEV[r.slaEstado]}" style="margin-left:6px">${SLA_ESTADO_LABEL[r.slaEstado]}</span>`;
+  } else if(r.slaEstado === "invalido"){
+    slaHtml = `<span class="pill ${SLA_ESTADO_SEV.invalido}">${SLA_ESTADO_LABEL.invalido}</span>${r.ingresoSugerido ? ` — sugerido: <b>${r.ingresoSugerido}</b>` : ``}`;
+  } else if(r.slaEstado === "sin_fecha"){
+    slaHtml = `<span class="pill ${SLA_ESTADO_SEV.sin_fecha}">${SLA_ESTADO_LABEL.sin_fecha}</span>`;
+  }
+
+  let secHtml = `<span class="muted">No comparable</span>`;
+  if(r.secEstado){
+    secHtml = `<span class="pill ${SEC_ESTADO_SEV[r.secEstado]}">${SEC_ESTADO_LABEL[r.secEstado]}</span>${r.atencionSugerida ? ` — sugerido: <b>${r.atencionSugerida}</b>` : ``}`;
+  }
+
+  recordFields.innerHTML = [
+    fieldRow("RUT", rutHtml),
+    fieldRow("Correo", r.correo ? esc(r.correo) : `<span class="muted">— sin registrar</span>`),
+    fieldRow("Servicio", r.servicio ? esc(r.servicio) : `<span class="muted">—</span>`),
+    fieldRow("Canal", r.paciente ? esc(r.paciente) : `<span class="muted">—</span>`),
+    fieldRow("Ejecutivo", r.ejecutivo ? esc(r.ejecutivo) : `<span class="muted">—</span>`),
+    r.estadoBO ? fieldRow("Estado de gestión", esc(r.estadoBO)) : "",
+    fieldRow("Fecha de ingreso", (r.ingreso || `<span class="muted">— sin registrar</span>`) + (r.ingresoSugerido ? ` <span style="color:var(--good-ink);font-weight:700">→ ${r.ingresoSugerido}</span>`:``)),
+    r.atencion ? fieldRow("Fecha de atención", r.atencion) : "",
+    fieldRow("Inconsistencia de fecha", r.incTexto ? `<span class="pill ${r.incOk?'good':'critical'}">${esc(r.incTexto)}</span>` : `<span class="muted">—</span>`),
+    fieldRow("Secuencia atención / ingreso", secHtml),
+    fieldRow("Cumplimiento de SLA", slaHtml),
+  ].join("");
+
+  recordFoot.textContent = `Hoja ${SHEET_NAME[mod]}, fila ${r.fila} en el archivo fuente.`;
+  recordExcelBtn.href = buildExcelLink(mod, r.fila);
+  recordOverlay.classList.add("open");
+}
+function closeRecordModal(){ recordOverlay.classList.remove("open"); }
+
+document.addEventListener("click", e=>{
+  // 1) clic en una fila de una lista -> abre el detalle del registro puntual
+  const row = e.target.closest("tr[data-fila]");
+  if(row){
+    openRecordModal(row.dataset.mod, row.dataset.fila);
+    return;
+  }
+  // 2) clic en un recuadro/KPI clicable -> abre la lista correspondiente
+  const trigger = e.target.closest("[data-title]");
+  if(trigger && overlay.contains(trigger)===false){
+    if(trigger.dataset.kind === "sla"){
+      openSlaModal(trigger.dataset.mod || null, trigger.dataset.sev || null, trigger.dataset.title, trigger.dataset.estado || null);
+    } else if(trigger.dataset.kind === "atencion"){
+      openAtencionModal(trigger.dataset.mod || null, trigger.dataset.title);
+    } else if(trigger.dataset.kind === "master"){
+      openMasterList(trigger.dataset.mod, trigger.dataset.filter || "total", trigger.dataset.title);
+    } else {
+      openRutModal(trigger.dataset.mod || null, trigger.dataset.tipo || null, trigger.dataset.title);
+    }
+    return;
+  }
+  if(e.target === overlay) closeRutModal();
+  if(e.target === recordOverlay) closeRecordModal();
+});
+document.getElementById("modalClose").addEventListener("click", closeRutModal);
+document.getElementById("recordClose").addEventListener("click", closeRecordModal);
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){ closeRecordModal(); closeRutModal(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual Auditoría SNL</title>
+<style>
+  :root{
+    --page:#f7f6f2; --surface:#ffffff; --surface-2:#f1efe9;
+    --ink:#16201f; --ink-2:#52625f; --ink-3:#8a9793;
+    --border:rgba(22,32,31,0.12); --border-strong:rgba(22,32,31,0.20);
+    --accent:#0f6b62; --accent-ink:#ffffff; --accent-soft:#e4f2ef; --accent-soft-ink:#0f6b62;
+    --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+    --good-soft:#e4f6e0; --warning-soft:#fff3d6; --serious-soft:#fde5da; --critical-soft:#fbe1e1;
+    --good-ink:#0c6b0c; --warning-ink:#8a5c00; --serious-ink:#a6431f; --critical-ink:#a12222;
+    --rail-bg:#0d1615; --rail-ink:#eef4f2; --rail-ink-2:#9fb3ae; --rail-active:#16302c;
+    --shadow:0 1px 2px rgba(16,25,24,0.06), 0 8px 24px -12px rgba(16,25,24,0.18);
+    --code-bg:#eef1ea;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --page:#0d1211; --surface:#141b1a; --surface-2:#1a2322;
+      --ink:#eef4f2; --ink-2:#b9c6c3; --ink-3:#7c8b88;
+      --border:rgba(255,255,255,0.10); --border-strong:rgba(255,255,255,0.18);
+      --accent:#3fb3a4; --accent-ink:#04211d; --accent-soft:#16302c; --accent-soft-ink:#6fd3c4;
+      --good:#22b522; --warning:#fab219; --serious:#f0906a; --critical:#e66767;
+      --good-soft:#123018; --warning-soft:#332405; --serious-soft:#3a1f15; --critical-soft:#3a1414;
+      --good-ink:#7fe07f; --warning-ink:#ffcf6b; --serious-ink:#ffab84; --critical-ink:#ff9c9c;
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+      --code-bg:#1e2624;
+    }
+  }
+  :root[data-theme="dark"]{
+    --page:#0d1211; --surface:#141b1a; --surface-2:#1a2322;
+    --ink:#eef4f2; --ink-2:#b9c6c3; --ink-3:#7c8b88;
+    --border:rgba(255,255,255,0.10); --border-strong:rgba(255,255,255,0.18);
+    --accent:#3fb3a4; --accent-ink:#04211d; --accent-soft:#16302c; --accent-soft-ink:#6fd3c4;
+    --good:#22b522; --warning:#fab219; --serious:#f0906a; --critical:#e66767;
+    --good-soft:#123018; --warning-soft:#332405; --serious-soft:#3a1f15; --critical-soft:#3a1414;
+    --good-ink:#7fe07f; --warning-ink:#ffcf6b; --serious-ink:#ffab84; --critical-ink:#ff9c9c;
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    --code-bg:#1e2624;
+  }
+
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--page); color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3,.serif{ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif; text-wrap:balance; margin:0; }
+  a{ color:var(--accent); }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .app{ display:flex; min-height:100vh; }
+
+  .rail{
+    width:260px; flex:0 0 260px; background:var(--rail-bg); color:var(--rail-ink);
+    display:flex; flex-direction:column; padding:22px 14px; gap:2px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .rail-brand{ padding:6px 10px 18px; }
+  .rail-brand .mark{ display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:9px; background:linear-gradient(155deg,#3fb3a4,#0f6b62); font-size:17px; margin-bottom:10px; }
+  .rail-brand .word{ font-family:"Iowan Old Style",Georgia,serif; font-size:18px; color:#fff; }
+  .rail-brand .sub{ font-size:11.5px; color:var(--rail-ink-2); margin-top:2px; line-height:1.4; }
+  .rail-link{ display:block; padding:8px 12px; border-radius:8px; color:var(--rail-ink-2); font-size:13px; text-decoration:none; line-height:1.4; }
+  .rail-link:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+  .rail-link.sub{ padding-left:24px; font-size:12px; }
+
+  .main{ flex:1; min-width:0; padding:44px 48px 100px; max-width:840px; }
+  .kicker{ font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); font-weight:700; margin-bottom:10px; }
+  .title{ font-size:32px; margin-bottom:10px; }
+  .lede{ font-size:15px; color:var(--ink-2); line-height:1.6; max-width:62ch; }
+
+  section{ margin-top:52px; scroll-margin-top:24px; }
+  section h2{ font-size:22px; margin-bottom:6px; }
+  section .h-sub{ font-size:13px; color:var(--ink-3); margin-bottom:18px; }
+  h3{ font-size:16px; margin:26px 0 10px; font-family:system-ui,sans-serif; font-weight:700; }
+  p{ font-size:14.5px; line-height:1.65; color:var(--ink-2); max-width:64ch; margin:0 0 12px; }
+  p b, li b{ color:var(--ink); font-weight:600; }
+  ul, ol{ font-size:14.5px; line-height:1.65; color:var(--ink-2); max-width:64ch; padding-left:22px; margin:0 0 14px; }
+  li{ margin-bottom:6px; }
+  hr.rule{ border:none; border-top:1px solid var(--border); margin:44px 0 0; }
+
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:20px 22px; margin:16px 0; }
+  .card h4{ font-size:14px; font-weight:700; margin:0 0 6px; font-family:system-ui,sans-serif; }
+  .card p:last-child{ margin-bottom:0; }
+
+  .steps{ counter-reset:step; list-style:none; padding:0; margin:16px 0; }
+  .steps li{ counter-increment:step; position:relative; padding-left:38px; margin-bottom:16px; }
+  .steps li::before{
+    content:counter(step); position:absolute; left:0; top:0; width:26px; height:26px; border-radius:50%;
+    background:var(--accent-soft); color:var(--accent-soft-ink); font-size:12.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; font-family:system-ui,sans-serif;
+  }
+
+  .pill{ display:inline-flex; align-items:center; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:99px; white-space:nowrap; letter-spacing:.01em; }
+  .pill.good{ background:var(--good-soft); color:var(--good-ink); }
+  .pill.warning{ background:var(--warning-soft); color:var(--warning-ink); }
+  .pill.serious{ background:var(--serious-soft); color:var(--serious-ink); }
+  .pill.critical{ background:var(--critical-soft); color:var(--critical-ink); }
+
+  table.gloss{ width:100%; border-collapse:collapse; font-size:13.5px; margin:14px 0 22px; }
+  table.gloss th{ text-align:left; color:var(--ink-3); font-weight:600; text-transform:uppercase; letter-spacing:.04em; font-size:10.5px; padding:0 10px 8px 0; border-bottom:1px solid var(--border-strong); }
+  table.gloss td{ padding:11px 10px 11px 0; border-top:1px solid var(--border); color:var(--ink-2); vertical-align:top; }
+  table.gloss td:first-child{ white-space:nowrap; }
+  .wrap-table{ overflow-x:auto; }
+
+  kbd, code{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; background:var(--code-bg); color:var(--ink); border-radius:5px; padding:1px 6px; font-size:.92em; }
+
+  .demo-kpi{ display:inline-flex; flex-direction:column; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 16px; box-shadow:var(--shadow); margin:6px 10px 6px 0; }
+  .demo-kpi .l{ font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); font-weight:600; }
+  .demo-kpi .v{ font-size:20px; font-weight:600; }
+  .demo-kpi .h{ font-size:10.5px; color:var(--accent); font-weight:700; }
+
+  .toc-note{ font-size:12px; color:var(--ink-3); margin-top:24px; padding-top:16px; border-top:1px solid var(--border); line-height:1.6; }
+
+  .backtotop{ font-size:12px; color:var(--ink-3); text-decoration:none; }
+
+  @media (max-width: 860px){
+    .app{ flex-direction:column; }
+    .rail{ position:static; width:100%; height:auto; flex:none; }
+    .main{ padding:28px 20px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="rail">
+    <div class="rail-brand">
+      <div class="mark">📘</div>
+      <div class="word">Manual</div>
+      <div class="sub">Panel de Auditoría SNL<br>Progesys</div>
+    </div>
+    <a class="rail-link" href="/" style="color:#fff; font-weight:700;">← Volver al panel</a>
+    <div style="height:10px;"></div>
+    <a class="rail-link" href="#que-es">1. Qué es este panel</a>
+    <a class="rail-link" href="#navegar">2. Cómo navegar</a>
+    <a class="rail-link" href="#resumen">3. Resumen general</a>
+    <a class="rail-link" href="#modulo">4. Dentro de un módulo</a>
+    <a class="rail-link sub" href="#inconsistencias">4.1 Inconsistencias de fecha</a>
+    <a class="rail-link sub" href="#secuencia">4.2 Secuencia de fechas</a>
+    <a class="rail-link sub" href="#rut-modulo">4.3 Calidad del RUT</a>
+    <a class="rail-link sub" href="#sla">4.4 Cumplimiento de SLA</a>
+    <a class="rail-link" href="#auditoria-rut">5. Auditoría de RUT</a>
+    <a class="rail-link" href="#recuadros">6. Los recuadros clicables</a>
+    <a class="rail-link" href="#glosario">7. Glosario de etiquetas</a>
+    <a class="rail-link" href="#metodologia">8. Metodología</a>
+    <a class="rail-link" href="#corregir">9. Qué hacer con los hallazgos</a>
+  </nav>
+
+  <main class="main">
+    <div class="kicker">Guía de uso</div>
+    <h1 class="title">Cómo leer el panel de Auditoría SNL</h1>
+    <p class="lede">Esta guía explica, sección por sección, qué muestra cada parte del panel, qué significan los colores y etiquetas, y qué hacer con lo que encuentres. Está escrita para cualquier persona del equipo, sin necesitar conocimientos técnicos.</p>
+
+    <section id="que-es">
+      <h2>1. Qué es este panel</h2>
+      <div class="h-sub">El objetivo, los datos que usa y lo que nunca vas a ver en pantalla</div>
+      <p>El panel revisa las cuatro bases de solicitudes SNL (Reembolsos, Informes Médicos, Otras Solicitudes y CD Pendiente) y busca tres tipos de problemas de forma automática:</p>
+      <ul>
+        <li><b>Fechas que no calzan</b> — por ejemplo, una fecha de ingreso en el futuro, o una atención registrada después de que el caso ya había ingresado.</li>
+        <li><b>RUT mal escritos</b> — usando el cálculo oficial del dígito verificador chileno.</li>
+        <li><b>Casos fuera de plazo (SLA)</b> — cuánto tiempo lleva abierto un caso, en días hábiles.</li>
+      </ul>
+      <div class="card">
+        <h4>🔒 Sobre los datos de pacientes</h4>
+        <p>El panel <b>nunca muestra el RUT, nombre o correo de un paciente por defecto</b>. Esa información vive solo en la base interna. La única forma de verla es haciendo clic deliberadamente en un número para corregir un caso puntual — nunca aparece de forma pasiva en pantalla.</p>
+      </div>
+    </section>
+
+    <section id="navegar">
+      <h2>2. Cómo navegar</h2>
+      <div class="h-sub">La barra lateral es el mapa del panel</div>
+      <p>A la izquierda hay una barra oscura con seis pestañas. Cada una es una vista distinta:</p>
+      <table class="gloss">
+        <thead><tr><th>Pestaña</th><th>Qué contiene</th></tr></thead>
+        <tbody>
+          <tr><td>📊 Resumen general</td><td>Una vista de pájaro de las cuatro bases juntas: volumen, inconsistencias y causas raíz.</td></tr>
+          <tr><td>💳 Reembolsos</td><td>Todo lo relacionado a solicitudes de reembolso de gastos médicos.</td></tr>
+          <tr><td>📄 Informes Médicos</td><td>Informes, certificados y licencias médicas.</td></tr>
+          <tr><td>🗂️ Otras Solicitudes</td><td>Recetas, órdenes médicas y confirmaciones diagnósticas.</td></tr>
+          <tr><td>🏥 CD Pendiente</td><td>Confirmaciones diagnósticas pendientes de agendamiento presencial.</td></tr>
+          <tr><td>🪪 Auditoría de RUT</td><td>El detalle consolidado de la validación de RUT en las cuatro bases.</td></tr>
+        </tbody>
+      </table>
+      <p>El número en un círculo junto al nombre de cada módulo es la cantidad de casos con inconsistencia de fecha en esa base — te da una idea de dónde mirar primero.</p>
+    </section>
+
+    <section id="resumen">
+      <h2>3. Resumen general</h2>
+      <div class="h-sub">La foto completa antes de entrar al detalle</div>
+      <p>Esta pestaña reúne los cuatro módulos en una sola vista. De arriba hacia abajo vas a encontrar:</p>
+      <ol>
+        <li><b>Un aviso</b> con el porcentaje de RUT correctos y cuántos requieren corrección.</li>
+        <li><b>Cuatro indicadores generales</b>: solicitudes totales, casos con inconsistencia de fecha, RUT mal escritos y módulos auditados.</li>
+        <li><b>Una barra comparativa por módulo</b>: el tramo tenue es lo que está bien, el tramo sólido es lo que tiene inconsistencia de fecha.</li>
+        <li><b>Causas raíz y solución</b>: las tarjetas explican, en lenguaje simple, por qué está pasando cada problema y qué se recomienda hacer al respecto.</li>
+      </ol>
+    </section>
+
+    <section id="modulo">
+      <h2>4. Dentro de un módulo</h2>
+      <div class="h-sub">Reembolsos, Informes Médicos, Otras Solicitudes y CD Pendiente comparten la misma estructura</div>
+      <p>Cada uno de los cuatro módulos está organizado en las mismas cuatro secciones, siempre en el mismo orden. Una vez que entiendes una, entiendes las cuatro.</p>
+
+      <h3 id="inconsistencias">4.1 Inconsistencias de fecha</h3>
+      <p>Lista los distintos tipos de error de fecha encontrados en ese módulo (por ejemplo, "fecha de formulario futura" o "término de licencia anterior al inicio"), con la cantidad de casos y una etiqueta de gravedad a la derecha. Ver el <a href="#glosario">glosario</a> para lo que significa cada color.</p>
+
+      <h3 id="secuencia">4.2 Secuencia de fechas</h3>
+      <p>Verifica una regla simple: <b>la fecha de atención tiene que ser anterior a la fecha de ingreso del caso</b> (no al revés). Muestra cuántos casos cumplen la regla y cuántos no. Al hacer clic en "Inconsistentes" puedes ver, caso por caso, si la atención quedó registrada el <span class="pill warning">MISMO DÍA</span> o <span class="pill critical">POSTERIOR</span> al ingreso, y si existe una corrección sugerida (cuando el problema se explica por día y mes invertidos).</p>
+
+      <h3 id="rut-modulo">4.3 Calidad del RUT</h3>
+      <p>Muestra cuántos RUT de ese módulo son válidos y, si hay problemas, los separa por tipo: campo vacío, formato no reconocible o dígito verificador incorrecto. Solo se ven las cantidades — el detalle con nombre y RUT aparece únicamente si haces clic.</p>
+
+      <h3 id="sla">4.4 Cumplimiento de SLA</h3>
+      <p>Mide cuántos días hábiles lleva abierto cada caso desde su ingreso, y lo compara contra el plazo del módulo (ver <a href="#glosario">glosario</a>). Separa los casos en tres grupos:</p>
+      <div style="display:flex; flex-wrap:wrap; gap:10px; margin:14px 0 18px;">
+        <div class="demo-kpi"><div class="l">Dentro de SLA</div><div class="v" style="color:var(--good-ink)">✓</div></div>
+        <div class="demo-kpi"><div class="l">Fuera de SLA</div><div class="v" style="color:var(--critical-ink)">✕</div><div class="h">Ver el detalle →</div></div>
+        <div class="demo-kpi"><div class="l">Ingreso con fecha futura</div><div class="v" style="color:var(--serious-ink)">?</div><div class="h">No se puede medir SLA →</div></div>
+      </div>
+      <p>El tercer grupo son casos que no se pueden medir porque su fecha de ingreso está mal escrita (queda en el futuro) — se muestran aparte para no distorsionar el porcentaje de cumplimiento.</p>
+      <div class="card">
+        <h4>¿Por qué tantos casos aparecen "fuera de SLA"?</h4>
+        <p>La base no registra una fecha de cierre para los casos ya resueltos. Por eso el panel mide días hábiles <b>desde el ingreso hasta hoy</b>, no el tiempo real que tardó un caso ya gestionado. Es un indicador de "tiempo abierto", no de "tiempo de resolución real" — se explica igual en el panel, junto a cada resultado.</p>
+      </div>
+    </section>
+
+    <section id="auditoria-rut">
+      <h2>5. Auditoría de RUT</h2>
+      <div class="h-sub">La vista consolidada de calidad de RUT en las cuatro bases</div>
+      <p>Reúne lo mismo que aparece repartido en cada módulo, pero en un solo lugar: cuántos RUT se analizaron, cuántos son válidos, el detalle por tipo de error y una tabla comparativa por módulo. Al final explica en palabras simples cómo se validó cada RUT y qué se recomienda para evitar que se sigan escribiendo mal (validación automática en el formulario).</p>
+    </section>
+
+    <section id="recuadros">
+      <h2>6. Los recuadros clicables</h2>
+      <div class="h-sub">Cómo reconocer qué se puede abrir</div>
+      <p>Cualquier número que tenga la frase <span style="color:var(--accent); font-weight:700; font-size:12.5px;">Ver el detalle →</span> debajo, o que quede resaltado al pasar el mouse, se puede abrir. Al hacer clic se abre una ventana con una tabla: cada fila es un caso real, con la fila exacta donde está en la base interna para que lo puedas ubicar y corregir.</p>
+      <ol class="steps">
+        <li>Haz clic en el número (por ejemplo, "RUT mal escritos" o "Fuera de SLA").</li>
+        <li>Revisa la tabla que se abre: trae el módulo, la fila en la base, el nombre y el detalle específico del problema.</li>
+        <li>Si existe una "corrección sugerida", úsala como punto de partida — igual conviene verificar contra la base original antes de modificar.</li>
+        <li>Cierra la ventana con el botón <kbd>✕</kbd>, la tecla <kbd>Esc</kbd>, o haciendo clic fuera de la ventana.</li>
+      </ol>
+    </section>
+
+    <section id="glosario">
+      <h2>7. Glosario de etiquetas</h2>
+      <div class="h-sub">Qué significa cada color y cada palabra que vas a ver repetida</div>
+      <div class="wrap-table">
+      <table class="gloss">
+        <thead><tr><th>Etiqueta</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill good">OK</span></td><td>El registro no tiene problema conocido.</td></tr>
+          <tr><td><span class="pill warning">MEDIA</span></td><td>Inconsistencia leve — por ejemplo, un campo vacío. Conviene revisar, no es urgente.</td></tr>
+          <tr><td><span class="pill serious">ALTA</span></td><td>Inconsistencia relevante — por ejemplo, una fecha de ingreso futura.</td></tr>
+          <tr><td><span class="pill critical">CRÍTICA</span></td><td>Inconsistencia lógicamente imposible — por ejemplo, una atención después del ingreso, o un RUT con dígito verificador incorrecto.</td></tr>
+          <tr><td><span class="pill critical">POSTERIOR</span></td><td>La fecha de atención quedó registrada después de la fecha de ingreso (debería ser antes).</td></tr>
+          <tr><td><span class="pill warning">MISMO DÍA</span></td><td>La fecha de atención y la fecha de ingreso son el mismo día — a criterio del equipo si es un caso legítimo.</td></tr>
+          <tr><td><span class="pill serious">FUTURA</span></td><td>La fecha registrada es posterior a hoy (13‑08‑2026) — casi siempre día y mes invertidos al digitar.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section id="metodologia">
+      <h2>8. Metodología</h2>
+      <div class="h-sub">Las reglas exactas detrás de cada cálculo</div>
+      <table class="gloss">
+        <thead><tr><th>Regla</th><th>Detalle</th></tr></thead>
+        <tbody>
+          <tr><td>Fecha de referencia</td><td>13‑08‑2026 — la fecha "hoy" que usa el panel para todos los cálculos.</td></tr>
+          <tr><td>SLA Reembolsos</td><td>14 días hábiles desde el ingreso.</td></tr>
+          <tr><td>SLA Informes / Otras / CD</td><td>10 días hábiles desde el ingreso.</td></tr>
+          <tr><td>Día hábil</td><td>Lunes a viernes, sin contar los 16 feriados oficiales de Chile 2026.</td></tr>
+          <tr><td>RUT válido</td><td>Cumple el formato numérico y su dígito verificador calza con el algoritmo oficial (módulo 11).</td></tr>
+          <tr><td>Atención vs. ingreso</td><td>La fecha de atención debe ser estrictamente anterior a la fecha de ingreso/formulario.</td></tr>
+        </tbody>
+      </table>
+      <p>Todos los cálculos se hacen directamente sobre las cuatro bases activas del archivo de solicitudes — si la base se actualiza, hay que volver a generar el panel para reflejar los cambios.</p>
+    </section>
+
+    <section id="corregir">
+      <h2>9. Qué hacer con los hallazgos</h2>
+      <div class="h-sub">Un flujo simple para pasar de "detectado" a "corregido"</div>
+      <ol class="steps">
+        <li><b>Detectar</b>: entra al módulo correspondiente y revisa los indicadores en rojo o naranjo.</li>
+        <li><b>Ver el detalle</b>: haz clic en el número para ver la lista de casos puntuales con su fila en la base.</li>
+        <li><b>Corregir en la base interna</b>: usa la fila indicada para ubicar el registro exacto en la hoja <code>*_BASE</code> y corrígelo ahí — el panel no edita datos, solo los diagnostica.</li>
+        <li><b>Prevenir hacia adelante</b>: revisa las recomendaciones de la sección "Causas raíz y solución" del Resumen general — la mayoría de los problemas se resuelven cambiando algo en el formulario de ingreso (por ejemplo, usar un selector de fecha en vez de texto libre).</li>
+      </ol>
+      <p class="toc-note"><a class="backtotop" href="#que-es">↑ Volver al inicio de esta guía</a></p>
+    </section>
+  </main>
+</div>
+</body>
+</html>

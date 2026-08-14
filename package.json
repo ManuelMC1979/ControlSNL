@@ -1,0 +1,17 @@
+{
+  "name": "controlsnl-panel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Panel de Auditoría SNL (Progesys) con datos en Neon Postgres y acceso con contraseña.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "load-data": "node db/load_data.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "pg": "^8.12.0",
+    "dotenv": "^16.4.5"
+  }
+}
