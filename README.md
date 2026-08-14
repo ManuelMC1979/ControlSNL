@@ -17,23 +17,26 @@ public/login.html     Pantalla de ingreso con contraseña
 
 ## 1) Crear la base en Neon
 
-1. Entra a [neon.tech](https://neon.tech) y crea un proyecto (o usa el que ya tienes).
-2. Copia el **connection string** (Dashboard → Connection Details). Se ve así:
+### Opción A — sin usar la terminal (más simple)
+
+1. Entra a [neon.tech](https://neon.tech) → tu proyecto → **SQL Editor** (en el menú lateral).
+2. Abre `db/seed_data.sql` de este repo, copia todo el contenido y pégalo en el editor.
+3. Click en **Run**. Crea las 3 tablas y carga los 1.829 registros en un solo paso.
+   Al final deberías poder correr `SELECT COUNT(*) FROM master_records;` y ver 1829.
+
+### Opción B — con terminal (si prefieres)
+
+1. Copia el **connection string** (Dashboard → Connection Details). Se ve así:
    `postgres://usuario:password@ep-xxxx.neon.tech/neondb?sslmode=require`
-3. Crea las tablas:
+2. Crea las tablas y carga los datos con un solo archivo:
    ```bash
-   psql "TU_CONNECTION_STRING" -f db/schema.sql
+   psql "TU_CONNECTION_STRING" -f db/seed_data.sql
    ```
-4. Carga los datos (usa el connection string solo en tu máquina, no lo compartas):
-   ```bash
-   npm install
-   DATABASE_URL="TU_CONNECTION_STRING" npm run load-data
-   ```
-   Debería terminar con `Listo. 1829 registros cargados en master_records.`
+   (o, si prefieres el script de Node con más control/logs: `npm install && DATABASE_URL="TU_CONNECTION_STRING" npm run load-data`)
 
 Si más adelante actualizas el Excel de solicitudes, vuelve a generar `data/master_data.json`
-(pídemelo a mí, o corre de nuevo el análisis) y repite el paso 4 — `load-data` reemplaza los
-datos existentes.
+y `db/seed_data.sql` (pídemelo a mí, o corre de nuevo el análisis) y repite este paso — vuelve
+a dejar los datos como en el archivo, reemplazando lo que hubiera antes.
 
 ## 2) Desplegar en Render
 
