@@ -38,13 +38,25 @@ CREATE TABLE IF NOT EXISTS master_records (
   UNIQUE(module_id, fila)
 );
 
+-- Si la tabla ya existía de una carga anterior (versión sin estas columnas), se agregan ahora.
+-- ADD COLUMN IF NOT EXISTS no hace nada si la columna ya está, así que este bloque es seguro
+-- de correr siempre, tanto en una base nueva como en una que ya tenías cargada.
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS responsable_bo TEXT;
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS es_prueba BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS estado_gestion TEXT;
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS repeticiones_rut INTEGER;
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS calidad_texto TEXT;
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS todo_mayusculas BOOLEAN;
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS doble_espacio BOOLEAN;
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS falta_tilde BOOLEAN;
+
 CREATE INDEX IF NOT EXISTS idx_master_module ON master_records(module_id);
 CREATE INDEX IF NOT EXISTS idx_master_rut_estado ON master_records(rut_estado);
 CREATE INDEX IF NOT EXISTS idx_master_sla_estado ON master_records(sla_estado);
 
 -- Texto descriptivo de cada módulo (nombre, ícono, descripción, estado de gestión, observación).
 CREATE TABLE IF NOT EXISTS modules_meta (
-  id          TEXT PRIMARY KEY,   -- reembolsos | informes | otras | cd
+  id          TEXT PRIMARY KEY,   -- reembolsos | informes | otras | cd | pacienteep
   nombre      TEXT NOT NULL,
   icon        TEXT NOT NULL,
   descripcion TEXT NOT NULL,
