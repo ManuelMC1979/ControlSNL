@@ -296,7 +296,6 @@
 <script>
 const MOD_LABEL = {reembolsos:"Reembolsos", informes:"Informes Médicos", otras:"Otras Solicitudes", cd:"CD Pendiente", pacienteep:"Paciente Derivado EP"};
 const SEV_LABEL = {good:"OK", warning:"MEDIA", serious:"ALTA", critical:"CRÍTICA"};
-const SLA_RULES = {reembolsos:14, informes:10, otras:10, cd:10, pacienteep:10};
 const TIPO_LABEL = {vacio:"Campo vacío", formato:"Formato no reconocible", dv:"Dígito verificador incorrecto"};
 const TIPO_SEV = {vacio:"warning", formato:"serious", dv:"critical"};
 const SHEET_NAME = {reembolsos:"Reembolsos", informes:"CDPendiente_BASE", otras:"Otras solicitudes", cd:"Cita pendiente Conf.Diag", pacienteep:"Paciente derivado EP"};
@@ -309,55 +308,23 @@ function buildExcelLink(mod, fila){
   return EXCEL_SHARE_LINK + sep + "activeCell=" + encodeURIComponent(cellRef) + "&wdActiveSheet=" + encodeURIComponent(sheet);
 }
 
-function computeSev(dias, sla){
-  if(dias<=sla) return 'good';
-  if(dias<=sla*2) return 'warning';
-  if(dias<=sla*4) return 'serious';
-  return 'critical';
-}
-
-let MODULES, MASTER_DATA, SLA_DATA, SLA_SIN_FECHA, ATENCION_DATA, ATENCION_SUMMARY, BAD_RUTS, CAUSAS;
+let MODULES, MASTER_DATA, BAD_RUTS, CAUSAS;
 let RUT_TOTAL, RUT_VALIDO, RUT_VACIO, RUT_FORMATO, RUT_DV, RUT_MAL;
 let GESTION_TOTAL, GESTION_CON, GESTION_SIN, DUP_GRUPOS_TOTAL, PRUEBA_TOTAL;
-
-function parseDMY(s){
-  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(s||"");
-  if(!m) return null;
-  return new Date(+m[3], +m[2]-1, +m[1]);
-}
 
 function deriveData(payload){
   MASTER_DATA = payload.master;
   EXCEL_SHARE_LINK = payload.excelShareLink || "";
   CAUSAS = payload.causas;
 
-  SLA_DATA = []; SLA_SIN_FECHA = {}; ATENCION_DATA = []; ATENCION_SUMMARY = {}; BAD_RUTS = [];
+  BAD_RUTS = [];
 
   for(const [mod, rows] of Object.entries(MASTER_DATA)){
-    SLA_SIN_FECHA[mod] = 0;
-    let secTotal = 0, secOk = 0;
     for(const r of rows){
-      if(r.slaEstado === 'sin_fecha'){
-        SLA_SIN_FECHA[mod]++;
-      } else {
-        const sev = r.slaEstado==='fuera' ? computeSev(r.dias, SLA_RULES[mod]) : (r.slaEstado==='invalido' ? 'serious' : 'good');
-        SLA_DATA.push({mod, fila:r.fila, nombre:r.nombre, ingreso:r.ingreso, dias:r.dias, estado:r.slaEstado, sev,
-                        respuesta:r.atencion, sugerida: r.slaEstado==='invalido' ? r.ingresoSugerido : null});
-      }
-      if(r.secEstado){
-        secTotal++;
-        if(r.secEstado==='ok'){ secOk++; }
-        else {
-          const dIng = parseDMY(r.ingreso), dAt = parseDMY(r.atencion);
-          const diff = (dIng && dAt) ? Math.round((dAt-dIng)/86400000) : null;
-          ATENCION_DATA.push({mod, fila:r.fila, nombre:r.nombre, ingreso:r.ingreso, atencion:r.atencion, diff, swapFix:r.atencionSugerida});
-        }
-      }
       if(r.rutEstado !== 'valido'){
         BAD_RUTS.push({mod, modLabel:MOD_LABEL[mod], fila:r.fila, nombre:r.nombre, rut: r.rut || '(vacío)', tipo:r.rutEstado, sugerencia:r.rutSugerencia});
       }
     }
-    ATENCION_SUMMARY[mod] = {total:secTotal, ok:secOk, bad:secTotal-secOk};
   }
 
   const MOD_ORDER = ["reembolsos","informes","otras","cd","pacienteep"];
@@ -403,36 +370,13 @@ function sparkRow(t,c,total,sev,opts){
   const w = Math.max(2, (c/total*100)).toFixed(1);
   const sevColor = `var(--${sev})`;
   const clickable = opts.mod || opts.tipo || opts.kind;
-  const estadoAttr = opts.kind==="sla" ? (opts.estado || "fuera") : "";
-  const attrs = clickable ? `class="issue-row clickable" data-kind="${opts.kind||'rut'}" data-mod="${opts.mod||''}" data-tipo="${opts.tipo||''}" data-sev="${opts.filterSev||''}" data-estado="${estadoAttr}" data-filter="${opts.filterKey||''}" data-title="${esc(opts.title||t)}"` : `class="issue-row"`;
+  const attrs = clickable ? `class="issue-row clickable" data-kind="${opts.kind||'rut'}" data-mod="${opts.mod||''}" data-tipo="${opts.tipo||''}" data-sev="${opts.filterSev||''}" data-filter="${opts.filterKey||''}" data-title="${esc(opts.title||t)}"` : `class="issue-row"`;
   return `<div ${attrs}>
     <div class="name">${esc(t)}</div>
     <div class="track"><div class="fill" style="width:${w}%;background:${sevColor}"></div></div>
     <div class="count tabular">${c}</div>
     <div class="pill ${sev}">${SEV_LABEL[sev]}</div>
   </div>`;
-}
-
-function moduleSlaSummary(m){
-  const rows = SLA_DATA.filter(r=>r.mod===m.id);
-  const fuera = rows.filter(r=>r.estado==="fuera");
-  const invalido = rows.filter(r=>r.estado==="invalido");
-  const dentro = rows.filter(r=>r.estado==="dentro");
-  const medibles = dentro.length + fuera.length; // excluye ingreso futuro (no medible)
-  return {
-    sla: SLA_RULES[m.id],
-    total: rows.length,
-    medibles,
-    fuera: fuera.length,
-    dentro: dentro.length,
-    invalido: invalido.length,
-    sinFecha: SLA_SIN_FECHA[m.id]||0,
-    bySev: {
-      warning: fuera.filter(r=>r.sev==="warning").length,
-      serious: fuera.filter(r=>r.sev==="serious").length,
-      critical: fuera.filter(r=>r.sev==="critical").length,
-    }
-  };
 }
 
 function moduleGestionSection(m){
@@ -485,84 +429,6 @@ function moduleGestionSection(m){
   </div>` : ``}
   <div class="foot-note" style="margin-top:${tieneCalidad?'0':'-4px'};margin-bottom:14px">
     “Con gestión” indica que el caso tiene alguna nota, responsable o respuesta registrada por el equipo — no necesariamente que ya se resolvió, solo que alguien lo tomó. “RUT duplicados” son números de RUT que aparecen en más de un registro dentro de este mismo módulo — revisar antes de gestionar para no duplicar trabajo.
-  </div>
-  `;
-}
-
-function moduleAtencionSection(m){
-  const s = ATENCION_SUMMARY[m.id];
-  if(!s || s.total === 0){
-    return `
-    <div class="section-title">Secuencia de fechas</div>
-    <div class="foot-note" style="margin-bottom:14px">Este módulo no tiene una segunda fecha de atención en la base fuente, por lo que no es posible comparar secuencia de fechas aquí.</div>
-    `;
-  }
-  return `
-  <div class="section-title">Secuencia de fechas <span class="n">— la fecha de atención debe ser anterior a la fecha de ingreso/formulario</span></div>
-  <div class="kpis" style="margin-bottom:12px">
-    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="secComparable" data-title="Casos comparables — ${m.nombre}">
-      <div class="lbl">Comparables</div>
-      <div class="val tabular">${s.total}</div>
-      <div class="hint">Ver el detalle →</div>
-    </div>
-    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="secOk" data-title="Atención antes del ingreso — ${m.nombre}">
-      <div class="lbl">Consistentes (atención antes del ingreso)</div>
-      <div class="val tabular" style="color:var(--good-ink)">${s.ok}<small>${pct(s.ok,s.total)}%</small></div>
-      <div class="hint">Ver el detalle →</div>
-    </div>
-    <div class="kpi clickable" data-kind="atencion" data-mod="${m.id}" data-title="Atención no anterior al ingreso — ${m.nombre}">
-      <div class="lbl">Inconsistentes</div>
-      <div class="val tabular" style="color:var(--critical-ink)">${s.bad}<small>${pct(s.bad,s.total)}%</small></div>
-      <div class="hint">Ver el detalle →</div>
-    </div>
-  </div>
-  <div class="foot-note" style="margin-top:-4px;margin-bottom:14px">
-    Se excluyen del cálculo los registros cuya fecha de ingreso ya está marcada como “Ingreso con fecha futura” (arriba), porque comparar contra una fecha de ingreso inválida no sería concluyente.
-  </div>
-  `;
-}
-
-function moduleSlaSection(m){
-  const s = moduleSlaSummary(m);
-  const rangeLbl = (lo,hi)=> hi ? `${lo}–${hi} días hábiles` : `más de ${lo-1} días hábiles`;
-  return `
-  <div class="section-title">Cumplimiento de SLA <span class="n">— ${s.sla} días hábiles desde el ingreso, sin fines de semana ni feriados 2026</span></div>
-  <div class="kpis" style="margin-bottom:12px">
-    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="slaMedible" data-title="Medibles — ${m.nombre}">
-      <div class="lbl">Medibles (fecha de ingreso válida)</div>
-      <div class="val tabular">${s.medibles}</div>
-      <div class="hint">Ver el detalle →</div>
-    </div>
-    <div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="slaDentro" data-title="Dentro de SLA — ${m.nombre}">
-      <div class="lbl">Dentro de SLA</div>
-      <div class="val tabular" style="color:var(--good-ink)">${s.dentro}<small>${pct(s.dentro,s.medibles)}%</small></div>
-      <div class="hint">Ver el detalle →</div>
-    </div>
-    <div class="kpi clickable" data-kind="sla" data-estado="fuera" data-mod="${m.id}" data-title="Fuera de SLA — ${m.nombre}">
-      <div class="lbl">Fuera de SLA</div>
-      <div class="val tabular" style="color:var(--critical-ink)">${s.fuera}<small>${pct(s.fuera,s.medibles)}%</small></div>
-      <div class="hint">Ver el detalle →</div>
-    </div>
-    ${s.invalido>0 ? `<div class="kpi clickable" data-kind="sla" data-estado="invalido" data-mod="${m.id}" data-title="Fecha de ingreso inconsistente (futura) — ${m.nombre}">
-      <div class="lbl">Ingreso con fecha futura</div>
-      <div class="val tabular" style="color:var(--serious-ink)">${s.invalido}</div>
-      <div class="hint">No se puede medir SLA →</div>
-    </div>` : ``}
-    ${s.sinFecha>0 ? `<div class="kpi clickable" data-kind="master" data-mod="${m.id}" data-filter="sinFecha" data-title="Sin fecha de ingreso — ${m.nombre}">
-      <div class="lbl">Sin fecha de ingreso</div>
-      <div class="val tabular" style="color:var(--ink-3)">${s.sinFecha}</div>
-      <div class="hint">Ver el detalle →</div>
-    </div>` : ``}
-  </div>
-  <div class="card">
-    ${s.bySev.warning ? sparkRow(rangeLbl(s.sla+1, s.sla*2), s.bySev.warning, s.medibles, "warning", {kind:"sla", mod:m.id, filterSev:"warning", title:`Fuera de SLA (leve) — ${m.nombre}`}) : ""}
-    ${s.bySev.serious ? sparkRow(rangeLbl(s.sla*2+1, s.sla*4), s.bySev.serious, s.medibles, "serious", {kind:"sla", mod:m.id, filterSev:"serious", title:`Fuera de SLA (grave) — ${m.nombre}`}) : ""}
-    ${s.bySev.critical ? sparkRow(rangeLbl(s.sla*4+1, null), s.bySev.critical, s.medibles, "critical", {kind:"sla", mod:m.id, filterSev:"critical", title:`Fuera de SLA (crítico) — ${m.nombre}`}) : ""}
-  </div>
-  <div class="foot-note" style="margin-top:14px">
-    La base no registra una fecha de cierre para este módulo, por lo que el indicador mide días hábiles transcurridos entre el ingreso y hoy (15‑08‑2026) — no necesariamente el tiempo real que tardó cada caso en resolverse si ya fue gestionado.
-    ${s.invalido>0 ? ` ${s.invalido} registros tienen una fecha de ingreso posterior a hoy (dato inconsistente, ya señalado como “Fecha de formulario futura”) — se excluyen del cálculo de SLA porque no es posible medir un plazo con una fecha de inicio inválida.` : ``}
-    ${s.sinFecha>0 ? ` ${s.sinFecha} registros no tienen fecha de ingreso y tampoco se pueden medir; ya están señalados en “Inconsistencias de fecha”.` : ``}
   </div>
   `;
 }
@@ -633,8 +499,6 @@ function renderModulePanel(m){
   </div>
 
   ${moduleGestionSection(m)}
-  ${moduleAtencionSection(m)}
-  ${moduleSlaSection(m)}
   `;
 }
 
@@ -861,94 +725,6 @@ function openRutModal(mod, tipo, title){
   overlay.classList.add("open");
 }
 
-function parseDMY(s){
-  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(s||"");
-  if(!m) return null;
-  return new Date(+m[3], +m[2]-1, +m[1]);
-}
-
-function openAtencionModal(mod, title){
-  document.getElementById("modalHead").innerHTML = `<tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>Fecha de ingreso</th><th>Fecha de atención</th><th>Diferencia</th><th>Corrección sugerida</th></tr>`;
-  const items = ATENCION_DATA.filter(r => !mod || r.mod===mod).slice().sort((a,b)=> b.diff - a.diff);
-  modalTitle.textContent = title || "Atención no anterior al ingreso";
-  modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} donde la atención no es anterior al ingreso — ordenados de mayor a menor diferencia.`;
-  modalBody.innerHTML = items.map(r => {
-    const badge = r.diff === 0
-      ? `<span class="pill warning" style="margin-left:4px">MISMO DÍA</span>`
-      : `<span class="pill critical" style="margin-left:4px">POSTERIOR</span>`;
-    return `<tr data-fila="${r.fila}" data-mod="${r.mod}">
-      <td>${MOD_LABEL[r.mod]}</td>
-      <td class="mono">${r.fila}</td>
-      <td>${esc(r.nombre)}</td>
-      <td class="mono">${r.ingreso}</td>
-      <td class="mono">${r.atencion} ${badge}</td>
-      <td class="mono">${r.diff} día${r.diff===1?'':'s'}</td>
-      <td class="mono ${r.swapFix?'fix':'arrow'}">${r.swapFix ? '→ '+r.swapFix+' (día/mes invertido)' : '— revisar manualmente'}</td>
-    </tr>`;
-  }).join("") || `<tr><td colspan="7" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
-  modalFoot.textContent = "Regla aplicada: la fecha de atención debe ser estrictamente MENOR a la fecha de ingreso/formulario. Haz clic en un caso para ver el detalle completo y abrir la planilla en esa fila.";
-  overlay.classList.add("open");
-}
-
-function openSlaModal(mod, sevFilter, title, estado){
-  estado = estado || "fuera";
-  modalTitle.textContent = title || "Fuera de SLA";
-
-  if(estado === "invalido"){
-    document.getElementById("modalHead").innerHTML = `<tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>Fecha de ingreso registrada</th><th>Fecha corregida (día/mes invertido)</th><th>Fecha de atención (referencia)</th></tr>`;
-    const items = SLA_DATA.filter(r => r.estado==="invalido" && (!mod || r.mod===mod))
-                           .slice().sort((a,b)=> parseDMY(b.ingreso) - parseDMY(a.ingreso));
-    modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} con fecha de ingreso posterior a hoy (15‑08‑2026) — en el 100% de los casos, invertir día y mes produce una fecha coherente dentro del rango real de la base.`;
-    modalBody.innerHTML = items.map(r => `
-      <tr data-fila="${r.fila}" data-mod="${r.mod}">
-        <td>${MOD_LABEL[r.mod]}</td>
-        <td class="mono">${r.fila}</td>
-        <td>${esc(r.nombre)}</td>
-        <td class="mono" style="color:var(--serious-ink)">${r.ingreso} <span class="pill serious" style="margin-left:4px">FUTURA</span></td>
-        <td class="mono" style="color:var(--good-ink);font-weight:700">${r.sugerida || '—'}</td>
-        <td class="mono" style="color:var(--ink-2)">${r.respuesta ? esc(r.respuesta) : '— sin registrar'}</td>
-      </tr>
-    `).join("") || `<tr><td colspan="6" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
-    modalFoot.textContent = "Estos registros ya están contabilizados como “Fecha de formulario futura” en las inconsistencias de fecha del módulo. La causa es un desorden día/mes en el ingreso de la fecha (ver sección “Causas raíz y solución” en Resumen general) — la columna “Fecha corregida” muestra el resultado de invertir día y mes, que en todos los casos cae dentro del rango de fechas reales de la base.";
-    overlay.classList.add("open");
-    return;
-  }
-
-  document.getElementById("modalHead").innerHTML = `<tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>Fecha de ingreso</th><th>Fecha de atención (referencia médica)</th><th>Días hábiles transcurridos</th><th>SLA del módulo</th></tr>`;
-  let items = SLA_DATA.filter(r => r.estado==="fuera" && (!mod || r.mod===mod) && (!sevFilter || r.sev===sevFilter));
-  items = items.slice().sort((a,b)=> b.dias - a.dias);
-
-  let posteriorCount = 0;
-  const rowsHtml = items.map(r => {
-    let respCell;
-    if(!r.respuesta){
-      respCell = `<td class="mono arrow">— sin registrar</td>`;
-    } else {
-      const dIng = parseDMY(r.ingreso), dResp = parseDMY(r.respuesta);
-      if(dIng && dResp && dResp > dIng){
-        posteriorCount++;
-        respCell = `<td class="mono" style="color:var(--critical-ink)">${esc(r.respuesta)} <span class="pill critical" style="margin-left:4px">POSTERIOR AL INGRESO</span></td>`;
-      } else {
-        respCell = `<td class="mono" style="color:var(--ink-2)">${esc(r.respuesta)}</td>`;
-      }
-    }
-    return `<tr data-fila="${r.fila}" data-mod="${r.mod}">
-      <td>${MOD_LABEL[r.mod]}</td>
-      <td class="mono">${r.fila}</td>
-      <td>${esc(r.nombre)}</td>
-      <td class="mono">${r.ingreso}</td>
-      ${respCell}
-      <td class="mono"><span class="pill ${r.sev}">${r.dias} días</span></td>
-      <td class="mono" style="color:var(--ink-3)">${SLA_RULES[r.mod]} días</td>
-    </tr>`;
-  }).join("") || `<tr><td colspan="7" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
-  modalBody.innerHTML = rowsHtml;
-
-  modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} fuera de SLA · ${posteriorCount} con atención registrada después del ingreso — ordenados de mayor a menor atraso.`;
-  modalFoot.textContent = "Días hábiles = lunes a viernes, sin contar los 16 feriados de Chile 2026, medidos desde el ingreso hasta el 15‑08‑2026 (no existe un campo de fecha de cierre en la base). La columna “Fecha de atención” es un dato de referencia médica cargado por el ejecutivo o el paciente — que sea ANTERIOR al ingreso es normal (suele referirse a una atención ya ocurrida). Cuando aparece marcada “POSTERIOR AL INGRESO”, la fecha de atención quedó registrada después de que se ingresó el caso — una secuencia lógicamente inconsistente, ya contabilizada en “Inconsistencias de fecha” de cada módulo. En Reembolsos ese campo no está registrado en el archivo fuente.";
-  overlay.classList.add("open");
-}
-
 function closeRutModal(){ overlay.classList.remove("open"); }
 
 /* ---------- Listas genéricas sobre MASTER_DATA (todo registro, filtrado) ---------- */
@@ -957,11 +733,6 @@ const MASTER_FILTERS = {
   sinError: r => r.incOk,
   conError: r => !r.incOk,
   rutValido: r => r.rutEstado === "valido",
-  slaMedible: r => r.slaEstado === "dentro" || r.slaEstado === "fuera",
-  slaDentro: r => r.slaEstado === "dentro",
-  sinFecha: r => r.slaEstado === "sin_fecha",
-  secComparable: r => r.secEstado !== null,
-  secOk: r => r.secEstado === "ok",
   gestionCon: r => r.estadoGestion && !/SIN/i.test(r.estadoGestion),
   gestionSin: r => r.estadoGestion && /SIN/i.test(r.estadoGestion),
   calidadBuena: r => r.calidadTexto === "Buena",
@@ -973,11 +744,6 @@ const MASTER_FILTERS = {
 
 function rowMeta(filterKey, r){
   if(filterKey==="rutValido") return {text:"RUT válido", sev:"good"};
-  if(filterKey==="slaDentro") return {text:(r.dias!=null ? r.dias+" días hábiles":"—"), sev:"good"};
-  if(filterKey==="slaMedible") return {text:(r.dias!=null ? r.dias+" días hábiles ("+(r.slaEstado==="fuera"?"fuera":"dentro")+")":"—"), sev:(r.slaEstado==="fuera"?"critical":"good")};
-  if(filterKey==="sinFecha") return {text:"Sin fecha de ingreso", sev:"warning"};
-  if(filterKey==="secComparable") return {text:(r.secEstado==="ok"?"Antes del ingreso":r.secEstado==="mismo_dia"?"Mismo día":r.secEstado==="posterior"?"Posterior al ingreso":"—"), sev:(r.secEstado==="ok"?"good":r.secEstado==="mismo_dia"?"warning":"critical")};
-  if(filterKey==="secOk") return {text:"Antes del ingreso", sev:"good"};
   if(filterKey==="gestionCon" || filterKey==="gestionSin") return {text: r.estadoGestion || "—", sev: (filterKey==="gestionCon"?"good":"critical")};
   if(filterKey==="calidadBuena") return {text:"Buena", sev:"good"};
   if(filterKey==="calidadRegular") return {text:"Regular"+[r.todoMayusculas&&" · mayúsculas",r.dobleEspacio&&" · doble espacio",r.faltaTilde&&" · sin tilde"].filter(Boolean).join(""), sev:"warning"};
@@ -1018,10 +784,6 @@ const recordExcelBtn = document.getElementById("recordExcelBtn");
 
 const RUT_ESTADO_LABEL = {valido:"Válido", vacio:"Campo vacío", formato:"Formato no reconocible", dv:"Dígito verificador incorrecto"};
 const RUT_ESTADO_SEV = {valido:"good", vacio:"warning", formato:"serious", dv:"critical"};
-const SLA_ESTADO_LABEL = {dentro:"Dentro de SLA", fuera:"Fuera de SLA", invalido:"No medible (fecha futura)", sin_fecha:"No medible (sin fecha)"};
-const SLA_ESTADO_SEV = {dentro:"good", fuera:"critical", invalido:"serious", sin_fecha:"warning"};
-const SEC_ESTADO_LABEL = {ok:"Antes del ingreso", mismo_dia:"Mismo día", posterior:"Posterior al ingreso"};
-const SEC_ESTADO_SEV = {ok:"good", mismo_dia:"warning", posterior:"critical"};
 
 function fieldRow(label, valueHtml){
   return `<div class="row"><dt>${label}</dt><dd>${valueHtml}</dd></div>`;
@@ -1037,20 +799,6 @@ function openRecordModal(mod, fila){
     ? `${esc(r.rut)} <span class="pill ${RUT_ESTADO_SEV[r.rutEstado]}" style="margin-left:6px">${RUT_ESTADO_LABEL[r.rutEstado]}</span>${r.rutSugerencia ? ` <span style="color:var(--good-ink);font-weight:700">→ ${r.rutSugerencia}</span>` : ``}`
     : `<span class="muted">— sin registrar</span> <span class="pill warning" style="margin-left:6px">Campo vacío</span>`;
 
-  let slaHtml = `<span class="muted">No medible</span>`;
-  if(r.slaEstado === "dentro" || r.slaEstado === "fuera"){
-    slaHtml = `${r.dias} días hábiles transcurridos <span class="pill ${SLA_ESTADO_SEV[r.slaEstado]}" style="margin-left:6px">${SLA_ESTADO_LABEL[r.slaEstado]}</span>`;
-  } else if(r.slaEstado === "invalido"){
-    slaHtml = `<span class="pill ${SLA_ESTADO_SEV.invalido}">${SLA_ESTADO_LABEL.invalido}</span>${r.ingresoSugerido ? ` — sugerido: <b>${r.ingresoSugerido}</b>` : ``}`;
-  } else if(r.slaEstado === "sin_fecha"){
-    slaHtml = `<span class="pill ${SLA_ESTADO_SEV.sin_fecha}">${SLA_ESTADO_LABEL.sin_fecha}</span>`;
-  }
-
-  let secHtml = `<span class="muted">No comparable</span>`;
-  if(r.secEstado){
-    secHtml = `<span class="pill ${SEC_ESTADO_SEV[r.secEstado]}">${SEC_ESTADO_LABEL[r.secEstado]}</span>${r.atencionSugerida ? ` — sugerido: <b>${r.atencionSugerida}</b>` : ``}`;
-  }
-
   recordFields.innerHTML = [
     fieldRow("RUT", rutHtml),
     fieldRow("Correo", r.correo ? esc(r.correo) : `<span class="muted">— sin registrar</span>`),
@@ -1061,8 +809,6 @@ function openRecordModal(mod, fila){
     fieldRow("Fecha de ingreso", (r.ingreso || `<span class="muted">— sin registrar</span>`) + (r.ingresoSugerido ? ` <span style="color:var(--good-ink);font-weight:700">→ ${r.ingresoSugerido}</span>`:``)),
     r.atencion ? fieldRow("Fecha de atención", r.atencion) : "",
     fieldRow("Inconsistencia de fecha", r.incTexto ? `<span class="pill ${r.incOk?'good':'critical'}">${esc(r.incTexto)}</span>` : `<span class="muted">—</span>`),
-    fieldRow("Secuencia atención / ingreso", secHtml),
-    fieldRow("Cumplimiento de SLA", slaHtml),
   ].join("");
 
   recordFoot.textContent = `Hoja ${SHEET_NAME[mod]}, fila ${r.fila} en el archivo fuente.`;
@@ -1081,11 +827,7 @@ document.addEventListener("click", e=>{
   // 2) clic en un recuadro/KPI clicable -> abre la lista correspondiente
   const trigger = e.target.closest("[data-title]");
   if(trigger && overlay.contains(trigger)===false){
-    if(trigger.dataset.kind === "sla"){
-      openSlaModal(trigger.dataset.mod || null, trigger.dataset.sev || null, trigger.dataset.title, trigger.dataset.estado || null);
-    } else if(trigger.dataset.kind === "atencion"){
-      openAtencionModal(trigger.dataset.mod || null, trigger.dataset.title);
-    } else if(trigger.dataset.kind === "master"){
+    if(trigger.dataset.kind === "master"){
       openMasterList(trigger.dataset.mod, trigger.dataset.filter || "total", trigger.dataset.title);
     } else {
       openRutModal(trigger.dataset.mod || null, trigger.dataset.tipo || null, trigger.dataset.title);

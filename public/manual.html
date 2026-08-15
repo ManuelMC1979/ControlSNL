@@ -136,9 +136,8 @@
     <a class="rail-link" href="#resumen">3. Resumen general</a>
     <a class="rail-link" href="#modulo">4. Dentro de un módulo</a>
     <a class="rail-link sub" href="#inconsistencias">4.1 Inconsistencias de fecha</a>
-    <a class="rail-link sub" href="#secuencia">4.2 Secuencia de fechas</a>
-    <a class="rail-link sub" href="#rut-modulo">4.3 Calidad del RUT</a>
-    <a class="rail-link sub" href="#sla">4.4 Cumplimiento de SLA</a>
+    <a class="rail-link sub" href="#rut-modulo">4.2 Calidad del RUT</a>
+    <a class="rail-link sub" href="#gestion-modulo">4.3 Gestión y calidad de los datos</a>
     <a class="rail-link" href="#auditoria-rut">5. Auditoría de RUT</a>
     <a class="rail-link" href="#recuadros">6. Los recuadros clicables</a>
     <a class="rail-link" href="#glosario">7. Glosario de etiquetas</a>
@@ -158,7 +157,6 @@
       <ul>
         <li><b>Fechas que no calzan</b> — por ejemplo, una fecha de ingreso en el futuro, o una atención registrada después de que el caso ya había ingresado.</li>
         <li><b>RUT mal escritos o repetidos</b> — usando el cálculo oficial del dígito verificador chileno, y detectando cuando el mismo RUT aparece más de una vez.</li>
-        <li><b>Casos fuera de plazo (SLA)</b> — cuánto tiempo lleva abierto un caso, en días hábiles.</li>
         <li><b>Gestión y calidad de los datos</b> — qué porcentaje de los casos tiene evidencia de que alguien los trabajó, y qué tan clara está escrita la solicitud.</li>
       </ul>
       <div class="card">
@@ -205,23 +203,14 @@
       <h3 id="inconsistencias">4.1 Inconsistencias de fecha</h3>
       <p>Lista los distintos tipos de error de fecha encontrados en ese módulo (por ejemplo, "fecha de formulario futura" o "término de licencia anterior al inicio"), con la cantidad de casos y una etiqueta de gravedad a la derecha. Ver el <a href="#glosario">glosario</a> para lo que significa cada color.</p>
 
-      <h3 id="secuencia">4.2 Secuencia de fechas</h3>
-      <p>Verifica una regla simple: <b>la fecha de atención tiene que ser anterior a la fecha de ingreso del caso</b> (no al revés). Muestra cuántos casos cumplen la regla y cuántos no. Al hacer clic en "Inconsistentes" puedes ver, caso por caso, si la atención quedó registrada el <span class="pill warning">MISMO DÍA</span> o <span class="pill critical">POSTERIOR</span> al ingreso, y si existe una corrección sugerida (cuando el problema se explica por día y mes invertidos).</p>
-
-      <h3 id="rut-modulo">4.3 Calidad del RUT</h3>
+      <h3 id="rut-modulo">4.2 Calidad del RUT</h3>
       <p>Muestra cuántos RUT de ese módulo son válidos y, si hay problemas, los separa por tipo: campo vacío, formato no reconocible o dígito verificador incorrecto. Solo se ven las cantidades — el detalle con nombre y RUT aparece únicamente si haces clic.</p>
 
-      <h3 id="sla">4.4 Cumplimiento de SLA</h3>
-      <p>Mide cuántos días hábiles lleva abierto cada caso desde su ingreso, y lo compara contra el plazo del módulo (ver <a href="#glosario">glosario</a>). Separa los casos en tres grupos:</p>
-      <div style="display:flex; flex-wrap:wrap; gap:10px; margin:14px 0 18px;">
-        <div class="demo-kpi"><div class="l">Dentro de SLA</div><div class="v" style="color:var(--good-ink)">✓</div></div>
-        <div class="demo-kpi"><div class="l">Fuera de SLA</div><div class="v" style="color:var(--critical-ink)">✕</div><div class="h">Ver el detalle →</div></div>
-        <div class="demo-kpi"><div class="l">Ingreso con fecha futura</div><div class="v" style="color:var(--serious-ink)">?</div><div class="h">No se puede medir SLA →</div></div>
-      </div>
-      <p>El tercer grupo son casos que no se pueden medir porque su fecha de ingreso está mal escrita (queda en el futuro) — se muestran aparte para no distorsionar el porcentaje de cumplimiento.</p>
+      <h3 id="gestion-modulo">4.3 Gestión y calidad de los datos</h3>
+      <p>Información que viene de la propia auditoría del archivo (no la calcula el panel): cuántos casos tienen gestión registrada por el equipo, cuántos RUT se repiten dentro del mismo módulo (posibles duplicados), qué tan clara está escrita la solicitud (Buena / Regular / Deficiente) y si se detectaron filas de prueba mezcladas con datos reales.</p>
       <div class="card">
-        <h4>¿Por qué tantos casos aparecen "fuera de SLA"?</h4>
-        <p>La base no registra una fecha de cierre para los casos ya resueltos. Por eso el panel mide días hábiles <b>desde el ingreso hasta hoy</b>, no el tiempo real que tardó un caso ya gestionado. Es un indicador de "tiempo abierto", no de "tiempo de resolución real" — se explica igual en el panel, junto a cada resultado.</p>
+        <h4>¿Qué significa "con gestión"?</h4>
+        <p>Que el caso tiene alguna nota, responsable o respuesta registrada por el equipo — no necesariamente que ya se resolvió, solo que alguien lo tomó. Igual que en el resto del panel, cada número es clicable y muestra el detalle caso a caso.</p>
       </div>
     </section>
 
@@ -236,7 +225,7 @@
       <div class="h-sub">Cómo reconocer qué se puede abrir</div>
       <p>Cualquier número que tenga la frase <span style="color:var(--accent); font-weight:700; font-size:12.5px;">Ver el detalle →</span> debajo, o que quede resaltado al pasar el mouse, se puede abrir. Al hacer clic se abre una ventana con una tabla: cada fila es un caso real, con la fila exacta donde está en la base interna para que lo puedas ubicar y corregir.</p>
       <ol class="steps">
-        <li>Haz clic en el número (por ejemplo, "RUT mal escritos" o "Fuera de SLA").</li>
+        <li>Haz clic en el número (por ejemplo, "RUT mal escritos" o "Sin gestión").</li>
         <li>Revisa la tabla que se abre: trae el módulo, la fila en la base, el nombre y el detalle específico del problema.</li>
         <li>Si existe una "corrección sugerida", úsala como punto de partida — igual conviene verificar contra la base original antes de modificar.</li>
         <li>Cierra la ventana con el botón <kbd>✕</kbd>, la tecla <kbd>Esc</kbd>, o haciendo clic fuera de la ventana.</li>
@@ -250,13 +239,10 @@
       <table class="gloss">
         <thead><tr><th>Etiqueta</th><th>Significado</th></tr></thead>
         <tbody>
-          <tr><td><span class="pill good">OK</span></td><td>El registro no tiene problema conocido.</td></tr>
-          <tr><td><span class="pill warning">MEDIA</span></td><td>Inconsistencia leve — por ejemplo, un campo vacío. Conviene revisar, no es urgente.</td></tr>
-          <tr><td><span class="pill serious">ALTA</span></td><td>Inconsistencia relevante — por ejemplo, una fecha de ingreso futura.</td></tr>
-          <tr><td><span class="pill critical">CRÍTICA</span></td><td>Inconsistencia lógicamente imposible — por ejemplo, una atención después del ingreso, o un RUT con dígito verificador incorrecto.</td></tr>
-          <tr><td><span class="pill critical">POSTERIOR</span></td><td>La fecha de atención quedó registrada después de la fecha de ingreso (debería ser antes).</td></tr>
-          <tr><td><span class="pill warning">MISMO DÍA</span></td><td>La fecha de atención y la fecha de ingreso son el mismo día — a criterio del equipo si es un caso legítimo.</td></tr>
-          <tr><td><span class="pill serious">FUTURA</span></td><td>La fecha registrada es posterior a hoy (13‑08‑2026) — casi siempre día y mes invertidos al digitar.</td></tr>
+          <tr><td><span class="pill good">OK</span> / <span class="pill good">Buena</span></td><td>El registro no tiene problema conocido, o el detalle está bien escrito.</td></tr>
+          <tr><td><span class="pill warning">MEDIA</span> / <span class="pill warning">Regular</span></td><td>Inconsistencia o calidad leve — por ejemplo, un campo vacío, o un texto con mayúsculas sostenidas o sin tildes. Conviene revisar, no es urgente.</td></tr>
+          <tr><td><span class="pill serious">ALTA</span></td><td>Inconsistencia relevante — por ejemplo, una fecha de ingreso futura, o un RUT que se repite en más de un registro.</td></tr>
+          <tr><td><span class="pill critical">CRÍTICA</span> / <span class="pill critical">Deficiente</span></td><td>Inconsistencia lógicamente imposible (por ejemplo, un RUT con dígito verificador incorrecto), o un detalle tan corto que no se entiende qué pide el paciente.</td></tr>
         </tbody>
       </table>
       </div>
@@ -268,12 +254,10 @@
       <table class="gloss">
         <thead><tr><th>Regla</th><th>Detalle</th></tr></thead>
         <tbody>
-          <tr><td>Fecha de referencia</td><td>13‑08‑2026 — la fecha "hoy" que usa el panel para todos los cálculos.</td></tr>
-          <tr><td>SLA Reembolsos</td><td>14 días hábiles desde el ingreso.</td></tr>
-          <tr><td>SLA Informes / Otras / CD</td><td>10 días hábiles desde el ingreso.</td></tr>
-          <tr><td>Día hábil</td><td>Lunes a viernes, sin contar los 16 feriados oficiales de Chile 2026.</td></tr>
+          <tr><td>Fecha de referencia</td><td>15‑08‑2026 — la fecha "hoy" que usa el panel para calcular si una fecha de ingreso quedó en el futuro.</td></tr>
           <tr><td>RUT válido</td><td>Cumple el formato numérico y su dígito verificador calza con el algoritmo oficial (módulo 11).</td></tr>
-          <tr><td>Atención vs. ingreso</td><td>La fecha de atención debe ser estrictamente anterior a la fecha de ingreso/formulario.</td></tr>
+          <tr><td>RUT duplicado</td><td>El mismo RUT válido aparece en más de un registro dentro del mismo módulo.</td></tr>
+          <tr><td>Con gestión</td><td>El caso tiene alguna nota, responsable o respuesta registrada por el equipo, según quedó documentado en la auditoría del archivo.</td></tr>
         </tbody>
       </table>
       <p>Todos los cálculos se hacen directamente sobre las cinco bases activas del archivo de solicitudes — si la base se actualiza, hay que volver a generar el panel para reflejar los cambios.</p>
