@@ -637,9 +637,97 @@ function renderRutTab(){
   `;
 }
 
+const MES_NOMBRE = {1:"enero",2:"febrero",3:"marzo",4:"abril",5:"mayo",6:"junio",7:"julio",8:"agosto",9:"septiembre",10:"octubre",11:"noviembre",12:"diciembre"};
+
+function renderAgosto(){
+  const mesLabel = MES_NOMBRE[REPORT_MES];
+  const allRows = [];
+  for(const [mod, rows] of Object.entries(MASTER_DATA)){
+    rows.forEach(r => { if(esDelMes(r, REPORT_MES, REPORT_ANIO)) allRows.push({...r, _mod: mod}); });
+  }
+  const total = allRows.length;
+  const sinGestion = allRows.filter(r=>r.estadoGestion && /SIN/i.test(r.estadoGestion)).length;
+  const rutMal = allRows.filter(r=>r.rutEstado!=='valido').length;
+  const rutDupSet = new Set(allRows.filter(r=>r.rutEstado==='valido' && r.repeticionesRut>1).map(r=>r._mod+'|'+r.rut));
+  const rutDupRegistros = allRows.filter(r=>r.rutEstado==='valido' && r.repeticionesRut>1).length;
+  const buena = allRows.filter(r=>r.calidadTexto==='Buena').length;
+  const regular = allRows.filter(r=>r.calidadTexto==='Regular').length;
+  const deficiente = allRows.filter(r=>r.calidadTexto==='Deficiente').length;
+
+  const porModulo = MODULES.map(m=>{
+    const rows = allRows.filter(r=>r._mod===m.id);
+    const t = rows.length;
+    const sg = rows.filter(r=>r.estadoGestion && /SIN/i.test(r.estadoGestion)).length;
+    const rd = new Set(rows.filter(r=>r.rutEstado==='valido' && r.repeticionesRut>1).map(r=>r.rut)).size;
+    const rm = rows.filter(r=>r.rutEstado!=='valido').length;
+    const reg = rows.filter(r=>r.calidadTexto==='Regular').length;
+    const def = rows.filter(r=>r.calidadTexto==='Deficiente').length;
+    return {m, t, sg, rd, rm, reg, def};
+  });
+
+  return `
+  <div class="lede">Lo mismo que ves en cada módulo, pero filtrado solo a las solicitudes que <b>ingresaron en ${mesLabel} de ${REPORT_ANIO}</b>, juntando las 5 áreas en un solo resumen. Sirve para revisar qué tan al día está el equipo con lo más reciente, sin mezclarlo con la carga histórica.</div>
+
+  <div class="kpis">
+    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="agostoTotal" data-title="Solicitudes de ${mesLabel} — Todos los módulos">
+      <div class="lbl">Solicitudes de ${mesLabel}</div>
+      <div class="val tabular">${total}</div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="agostoSinGestion" data-title="Sin gestión registrada — ${mesLabel}, todos los módulos">
+      <div class="lbl">Sin gestión registrada</div>
+      <div class="val tabular" style="color:var(--critical-ink)">${sinGestion}<small>${pct(sinGestion,total)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="agostoRutDuplicado" data-title="RUT que se repiten — ${mesLabel}, todos los módulos">
+      <div class="lbl">RUT que se repiten</div>
+      <div class="val tabular" style="color:var(--serious-ink)">${rutDupSet.size}<small>${rutDupRegistros} registros</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="agostoRutMal" data-title="RUT mal escritos — ${mesLabel}, todos los módulos">
+      <div class="lbl">RUT mal escritos</div>
+      <div class="val tabular" style="color:var(--critical-ink)">${rutMal}<small>${pct(rutMal,total)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
+  </div>
+
+  <div class="section-title">Calidad de la redacción <span class="n">— solicitudes de ${mesLabel}, las 5 áreas juntas</span></div>
+  <div class="card">
+    ${buena ? sparkRow("Buena — se entiende sin problema", buena, total, "good", {kind:"master", mod:"", filterKey:"agostoCalidadBuena", title:`Calidad Buena — ${mesLabel}`}) : ""}
+    ${regular ? sparkRow("Regular — mayúsculas sostenidas, sin tildes o doble espacio", regular, total, "warning", {kind:"master", mod:"", filterKey:"agostoCalidadRegular", title:`Calidad Regular — ${mesLabel}`}) : ""}
+    ${deficiente ? sparkRow("Deficiente — el detalle es muy corto para entender qué se pide", deficiente, total, "critical", {kind:"master", mod:"", filterKey:"agostoCalidadDeficiente", title:`Calidad Deficiente — ${mesLabel}`}) : ""}
+    ${(buena+regular+deficiente)===0 ? `<div style="padding:16px 20px;color:var(--ink-3);font-size:13px;">Ninguna solicitud de ${mesLabel} tiene calidad de redacción evaluada en este módulo.</div>` : ""}
+  </div>
+
+  <div class="section-title">Por módulo <span class="n">— solo ${mesLabel} de ${REPORT_ANIO}</span></div>
+  <div class="card pad">
+    <table class="rutdef">
+      <thead><tr><th>Módulo</th><th>Solicitudes</th><th>Sin gestión</th><th>RUT duplicados</th><th>RUT mal escritos</th><th>Calidad Regular/Deficiente</th></tr></thead>
+      <tbody>
+        ${porModulo.map(({m,t,sg,rd,rm,reg,def})=>{
+          if(t===0) return `<tr><td>${m.icon} ${m.nombre}</td><td class="mono">0</td><td class="mono" colspan="4" style="color:var(--ink-3)">Sin solicitudes en ${mesLabel}</td></tr>`;
+          return `<tr>
+            <td>${m.icon} ${m.nombre}</td>
+            <td class="mono">${t}</td>
+            <td class="mono ${sg>0?'clickable':''}" ${sg>0?`data-kind="master" data-filter="agostoSinGestion" data-mod="${m.id}" data-title="Sin gestión — ${m.nombre}, ${mesLabel}"`:''} style="${sg>0?'color:var(--critical-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${sg}</td>
+            <td class="mono ${rd>0?'clickable':''}" ${rd>0?`data-kind="master" data-filter="agostoRutDuplicado" data-mod="${m.id}" data-title="RUT duplicados — ${m.nombre}, ${mesLabel}"`:''} style="${rd>0?'color:var(--serious-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${rd}</td>
+            <td class="mono ${rm>0?'clickable':''}" ${rm>0?`data-kind="master" data-filter="agostoRutMal" data-mod="${m.id}" data-title="RUT mal escritos — ${m.nombre}, ${mesLabel}"`:''} style="${rm>0?'color:var(--critical-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${rm}</td>
+            <td class="mono">${reg+def}</td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+  </div>
+  <div class="foot-note">
+    “Sin gestión registrada”, “RUT que se repiten” y “Calidad de la redacción” usan la misma información que ya viene en la auditoría del archivo — acá solo se filtra a las solicitudes cuya fecha de ingreso cae en ${mesLabel} de ${REPORT_ANIO}. Haz clic en cualquier número para ver el detalle, incluido el RUT.
+  </div>
+  `;
+}
+
 function build(){
   const TABS = [
     {id:"resumen", label:"Resumen general", icon:"📊", render:renderResumen, count:null},
+    {id:"agosto", label:`Análisis de ${MES_NOMBRE[REPORT_MES][0].toUpperCase()+MES_NOMBRE[REPORT_MES].slice(1)}`, icon:"📅", render:renderAgosto, count:null},
     ...MODULES.map(m=>({id:m.id, label:m.nombre, icon:m.icon, render:()=>renderModulePanel(m), count:m.conError})),
     {id:"rut", label:"Auditoría de RUT", icon:"🪪", render:renderRutTab, count:RUT_MAL},
   ];
@@ -727,6 +815,15 @@ function openRutModal(mod, tipo, title){
 
 function closeRutModal(){ overlay.classList.remove("open"); }
 
+/* ---------- Mes actual (para el módulo "Análisis de Agosto") ---------- */
+const REPORT_MES = 8, REPORT_ANIO = 2026;
+function esDelMes(r, mes, anio){
+  if(!r.ingreso) return false;
+  const partes = r.ingreso.split("-");
+  if(partes.length !== 3) return false;
+  return Number(partes[1]) === mes && Number(partes[2]) === anio;
+}
+
 /* ---------- Listas genéricas sobre MASTER_DATA (todo registro, filtrado) ---------- */
 const MASTER_FILTERS = {
   total: r => true,
@@ -740,6 +837,13 @@ const MASTER_FILTERS = {
   calidadDeficiente: r => r.calidadTexto === "Deficiente",
   rutDuplicado: r => r.repeticionesRut && r.repeticionesRut > 1 && r.rutEstado === "valido",
   esPrueba: r => r.esPrueba,
+  agostoTotal: r => esDelMes(r, REPORT_MES, REPORT_ANIO),
+  agostoSinGestion: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.estadoGestion && /SIN/i.test(r.estadoGestion),
+  agostoRutDuplicado: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.repeticionesRut && r.repeticionesRut > 1 && r.rutEstado === "valido",
+  agostoRutMal: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.rutEstado !== "valido",
+  agostoCalidadBuena: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.calidadTexto === "Buena",
+  agostoCalidadRegular: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.calidadTexto === "Regular",
+  agostoCalidadDeficiente: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.calidadTexto === "Deficiente",
 };
 
 function rowMeta(filterKey, r){
@@ -750,26 +854,43 @@ function rowMeta(filterKey, r){
   if(filterKey==="calidadDeficiente") return {text:"Deficiente (detalle muy corto o vacío)", sev:"critical"};
   if(filterKey==="rutDuplicado") return {text:`Se repite ${r.repeticionesRut} veces`, sev:"serious"};
   if(filterKey==="esPrueba") return {text:"Registro de prueba/dummy", sev:"serious"};
+  if(filterKey==="agostoTotal") return {text: r.incTexto || "—", sev: r.incOk ? "good" : "critical"};
+  if(filterKey==="agostoSinGestion") return {text: r.estadoGestion || "Sin gestión", sev:"critical"};
+  if(filterKey==="agostoRutDuplicado") return {text:`RUT se repite ${r.repeticionesRut} veces`, sev:"serious"};
+  if(filterKey==="agostoRutMal") return {text: TIPO_LABEL[r.rutEstado] || "RUT mal escrito", sev: TIPO_SEV[r.rutEstado] || "serious"};
+  if(filterKey==="agostoCalidadBuena") return {text:"Buena", sev:"good"};
+  if(filterKey==="agostoCalidadRegular") return {text:"Regular"+[r.todoMayusculas&&" · mayúsculas",r.dobleEspacio&&" · doble espacio",r.faltaTilde&&" · sin tilde"].filter(Boolean).join(""), sev:"warning"};
+  if(filterKey==="agostoCalidadDeficiente") return {text:"Deficiente (detalle muy corto o vacío)", sev:"critical"};
   // total / sinError / conError
   return {text: r.incTexto || "—", sev: r.incOk ? "good" : "critical"};
 }
 
 function openMasterList(mod, filterKey, title){
-  document.getElementById("modalHead").innerHTML = `<tr><th>Fila en base</th><th>Nombre</th><th>Servicio</th><th>Fecha de ingreso</th><th>Estado</th></tr>`;
   const pred = MASTER_FILTERS[filterKey] || (()=>true);
-  const items = (MASTER_DATA[mod] || []).filter(pred).slice().sort((a,b)=> a.fila - b.fila);
+  let items = [];
+  if(mod){
+    items = (MASTER_DATA[mod] || []).filter(pred).map(r => ({...r, _mod: mod}));
+  } else {
+    for(const [mid, rows] of Object.entries(MASTER_DATA)){
+      rows.filter(pred).forEach(r => items.push({...r, _mod: mid}));
+    }
+  }
+  items.sort((a,b)=> a._mod===b._mod ? a.fila-b.fila : a._mod.localeCompare(b._mod));
+
+  document.getElementById("modalHead").innerHTML = `<tr>${mod?'':'<th>Módulo</th>'}<th>Fila en base</th><th>Nombre</th><th>Servicio</th><th>Fecha de ingreso</th><th>Estado</th></tr>`;
   modalTitle.textContent = title || "Registros";
   modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} — haz clic en uno para ver el detalle completo, incluido el RUT.`;
   modalBody.innerHTML = items.map(r => {
     const meta = rowMeta(filterKey, r);
-    return `<tr data-fila="${r.fila}" data-mod="${mod}">
+    return `<tr data-fila="${r.fila}" data-mod="${r._mod}">
+      ${mod?'':`<td>${MOD_LABEL[r._mod]}</td>`}
       <td class="mono">${r.fila}</td>
       <td>${esc(r.nombre)}</td>
       <td style="color:var(--ink-2)">${esc(r.servicio||'—')}</td>
       <td class="mono">${r.ingreso || '— sin registrar'}</td>
       <td><span class="pill ${meta.sev}">${esc(meta.text)}</span></td>
     </tr>`;
-  }).join("") || `<tr><td colspan="5" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
+  }).join("") || `<tr><td colspan="${mod?5:6}" style="padding:20px 22px;color:var(--ink-3)">Sin casos para este filtro.</td></tr>`;
   modalFoot.textContent = "Haz clic en un caso para ver el detalle completo, incluido el RUT, y abrir la planilla en esa fila.";
   overlay.classList.add("open");
 }

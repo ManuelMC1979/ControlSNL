@@ -134,15 +134,16 @@
     <a class="rail-link" href="#que-es">1. Qué es este panel</a>
     <a class="rail-link" href="#navegar">2. Cómo navegar</a>
     <a class="rail-link" href="#resumen">3. Resumen general</a>
-    <a class="rail-link" href="#modulo">4. Dentro de un módulo</a>
-    <a class="rail-link sub" href="#inconsistencias">4.1 Inconsistencias de fecha</a>
-    <a class="rail-link sub" href="#rut-modulo">4.2 Calidad del RUT</a>
-    <a class="rail-link sub" href="#gestion-modulo">4.3 Gestión y calidad de los datos</a>
-    <a class="rail-link" href="#auditoria-rut">5. Auditoría de RUT</a>
-    <a class="rail-link" href="#recuadros">6. Los recuadros clicables</a>
-    <a class="rail-link" href="#glosario">7. Glosario de etiquetas</a>
-    <a class="rail-link" href="#metodologia">8. Metodología</a>
-    <a class="rail-link" href="#corregir">9. Qué hacer con los hallazgos</a>
+    <a class="rail-link" href="#agosto">4. Análisis de Agosto</a>
+    <a class="rail-link" href="#modulo">5. Dentro de un módulo</a>
+    <a class="rail-link sub" href="#inconsistencias">5.1 Inconsistencias de fecha</a>
+    <a class="rail-link sub" href="#rut-modulo">5.2 Calidad del RUT</a>
+    <a class="rail-link sub" href="#gestion-modulo">5.3 Gestión y calidad de los datos</a>
+    <a class="rail-link" href="#auditoria-rut">6. Auditoría de RUT</a>
+    <a class="rail-link" href="#recuadros">7. Los recuadros clicables</a>
+    <a class="rail-link" href="#glosario">8. Glosario de etiquetas</a>
+    <a class="rail-link" href="#metodologia">9. Metodología</a>
+    <a class="rail-link" href="#corregir">10. Qué hacer con los hallazgos</a>
   </nav>
 
   <main class="main">
@@ -195,18 +196,31 @@
       </ol>
     </section>
 
+    <section id="agosto">
+      <h2>4. Análisis de Agosto</h2>
+      <div class="h-sub">El mismo panel, pero mirando solo lo más reciente</div>
+      <p>Esta pestaña filtra las cinco áreas a las solicitudes que <b>ingresaron durante el mes en curso</b> y las junta en un solo resumen — pensada para revisar rápido qué tan al día está el equipo con lo nuevo, sin que la carga histórica tape el panorama. Muestra cuatro cosas:</p>
+      <ol>
+        <li><b>Solicitudes sin gestión registrada</b> del mes, en total y por módulo.</li>
+        <li><b>RUT que se repiten</b> dentro de un mismo módulo entre las solicitudes del mes.</li>
+        <li><b>RUT mal escritos</b> entre las solicitudes del mes.</li>
+        <li><b>Calidad de la redacción</b> (Buena / Regular / Deficiente) de las solicitudes del mes.</li>
+      </ol>
+      <p>Funciona igual que el resto del panel: cada número es clicable y muestra el detalle caso a caso, incluido el RUT. La tabla "Por módulo" además permite hacer clic directo en la cifra de un módulo puntual.</p>
+    </section>
+
     <section id="modulo">
-      <h2>4. Dentro de un módulo</h2>
+      <h2>5. Dentro de un módulo</h2>
       <div class="h-sub">Reembolsos, Informes Médicos, Otras Solicitudes, CD Pendiente y Paciente Derivado EP comparten la misma estructura</div>
       <p>Cada uno de los cinco módulos está organizado en las mismas secciones, siempre en el mismo orden. Una vez que entiendes uno, entiendes los cinco.</p>
 
-      <h3 id="inconsistencias">4.1 Inconsistencias de fecha</h3>
+      <h3 id="inconsistencias">5.1 Inconsistencias de fecha</h3>
       <p>Lista los distintos tipos de error de fecha encontrados en ese módulo (por ejemplo, "fecha de formulario futura" o "término de licencia anterior al inicio"), con la cantidad de casos y una etiqueta de gravedad a la derecha. Ver el <a href="#glosario">glosario</a> para lo que significa cada color.</p>
 
-      <h3 id="rut-modulo">4.2 Calidad del RUT</h3>
+      <h3 id="rut-modulo">5.2 Calidad del RUT</h3>
       <p>Muestra cuántos RUT de ese módulo son válidos y, si hay problemas, los separa por tipo: campo vacío, formato no reconocible o dígito verificador incorrecto. Solo se ven las cantidades — el detalle con nombre y RUT aparece únicamente si haces clic.</p>
 
-      <h3 id="gestion-modulo">4.3 Gestión y calidad de los datos</h3>
+      <h3 id="gestion-modulo">5.3 Gestión y calidad de los datos</h3>
       <p>Información que viene de la propia auditoría del archivo (no la calcula el panel): cuántos casos tienen gestión registrada por el equipo, cuántos RUT se repiten dentro del mismo módulo (posibles duplicados), qué tan clara está escrita la solicitud (Buena / Regular / Deficiente) y si se detectaron filas de prueba mezcladas con datos reales.</p>
       <div class="card">
         <h4>¿Qué significa "con gestión"?</h4>
@@ -215,13 +229,13 @@
     </section>
 
     <section id="auditoria-rut">
-      <h2>5. Auditoría de RUT</h2>
+      <h2>6. Auditoría de RUT</h2>
       <div class="h-sub">La vista consolidada de calidad de RUT en las cinco áreas</div>
       <p>Reúne lo mismo que aparece repartido en cada módulo, pero en un solo lugar: cuántos RUT se analizaron, cuántos son válidos, el detalle por tipo de error y una tabla comparativa por módulo. Al final explica en palabras simples cómo se validó cada RUT y qué se recomienda para evitar que se sigan escribiendo mal (validación automática en el formulario).</p>
     </section>
 
     <section id="recuadros">
-      <h2>6. Los recuadros clicables</h2>
+      <h2>7. Los recuadros clicables</h2>
       <div class="h-sub">Cómo reconocer qué se puede abrir</div>
       <p>Cualquier número que tenga la frase <span style="color:var(--accent); font-weight:700; font-size:12.5px;">Ver el detalle →</span> debajo, o que quede resaltado al pasar el mouse, se puede abrir. Al hacer clic se abre una ventana con una tabla: cada fila es un caso real, con la fila exacta donde está en la base interna para que lo puedas ubicar y corregir.</p>
       <ol class="steps">
@@ -233,7 +247,7 @@
     </section>
 
     <section id="glosario">
-      <h2>7. Glosario de etiquetas</h2>
+      <h2>8. Glosario de etiquetas</h2>
       <div class="h-sub">Qué significa cada color y cada palabra que vas a ver repetida</div>
       <div class="wrap-table">
       <table class="gloss">
@@ -249,7 +263,7 @@
     </section>
 
     <section id="metodologia">
-      <h2>8. Metodología</h2>
+      <h2>9. Metodología</h2>
       <div class="h-sub">Las reglas exactas detrás de cada cálculo</div>
       <table class="gloss">
         <thead><tr><th>Regla</th><th>Detalle</th></tr></thead>
@@ -264,7 +278,7 @@
     </section>
 
     <section id="corregir">
-      <h2>9. Qué hacer con los hallazgos</h2>
+      <h2>10. Qué hacer con los hallazgos</h2>
       <div class="h-sub">Un flujo simple para pasar de "detectado" a "corregido"</div>
       <ol class="steps">
         <li><b>Detectar</b>: entra al módulo correspondiente y revisa los indicadores en rojo o naranjo.</li>
