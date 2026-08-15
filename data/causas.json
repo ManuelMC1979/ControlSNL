@@ -1,26 +1,38 @@
 [
  {
   "sev": "critical",
-  "h": "Atención no anterior al ingreso (325 casos)",
-  "p": "Se validó, módulo por módulo, que la “fecha de atención” sea estrictamente anterior a la fecha de ingreso/formulario. 325 registros no cumplen la regla: 18 en Reembolsos, 63 en Informes Médicos, 190 en Otras Solicitudes y 54 en CD Pendiente (137 de ellos son el mismo día exacto, y 188 quedaron con la atención registrada después del ingreso). Solo 34 se explican por el mismo problema de día/mes invertido; el resto no tiene una corrección automática confiable.",
-  "s": "Aclarar en el formulario si el campo debe registrar la última atención ya ocurrida o la próxima atención agendada, y restringir el campo a un selector de fecha con validación (fecha de atención ≤ fecha de ingreso). El detalle caso a caso, con la corrección sugerida cuando aplica, está disponible en “Secuencia de fechas” dentro de cada módulo."
+  "h": "533 solicitudes sin gestión registrada",
+  "p": "De las 1.504 solicitudes analizadas, 533 no tienen ninguna evidencia de que alguien las haya trabajado (sin nombre de ejecutivo, sin nota de gestión, sin respuesta). El mayor volumen está en Otras Solicitudes (486 de 1.071, un 45%) y en CD Pendiente (44 de 201, un 22%). Son pacientes que pidieron algo — una boleta, una receta, una cita — y no hay registro de que se les haya respondido.",
+  "s": "Priorizar el cierre de estos 533 casos partiendo por los más antiguos (ver “Fuera de SLA” en cada módulo). A futuro, hacer obligatorio dejar una nota de gestión antes de poder cerrar o archivar una solicitud."
  },
  {
   "sev": "critical",
-  "h": "Fecha de ingreso con día y mes invertidos (230 casos)",
-  "p": "230 solicitudes (57 en Informes Médicos, 107 en Otras Solicitudes, 66 en CD Pendiente) quedaron con una “Fecha respuesta formulario” en el futuro (septiembre a diciembre de 2026). Se probó matemáticamente invirtiendo día y mes de cada una de las 230 fechas: el 100% cae dentro de un rango coherente con el resto de la base (enero a agosto de 2026). Esto confirma que no son datos inventados ni errores aislados, sino un problema sistemático de formato: el día y el mes se están grabando invertidos (DD/MM leído como MM/DD, o viceversa) cada vez que el día es 12 o menor — el único caso en que la inversión es posible sin generar una fecha inválida. Reembolsos no presenta este problema porque no usa el mismo campo de fecha automática del formulario.",
-  "s": "1) En el formulario (Google Forms u otro), cambiar el campo de fecha de “texto corto” a un campo de tipo Fecha con selector de calendario — elimina la ambigüedad de raíz. 2) Si el dato llega a Google Sheets/Excel vía una integración o pegado automático, revisar la configuración regional de la hoja (Archivo → Configuración → Configuración regional = Chile) para que el formato se interprete siempre como DD/MM/AAAA. 3) Agregar una validación que rechace o marque cualquier fecha de ingreso posterior al día actual. 4) Corregir retroactivamente los 230 registros invirtiendo día y mes — el detalle con la fecha corregida sugerida está disponible en cada módulo, en “Ingreso con fecha futura” dentro de Cumplimiento de SLA."
+  "h": "Atención registrada después del ingreso (325+ casos)",
+  "p": "La fecha de atención debería ser siempre anterior a la fecha en que se ingresó el caso (la atención ya ocurrió, y por eso el paciente pide el documento). Cuando aparece al revés, es una secuencia imposible: normalmente indica que se escribió mal una de las dos fechas.",
+  "s": "Revisar caso a caso en la sección “Secuencia de fechas” de cada módulo — ahí se sugiere automáticamente la fecha corregida cuando el problema es un día/mes invertido, y se marca “revisar manualmente” cuando no se puede deducir."
+ },
+ {
+  "sev": "serious",
+  "h": "125 RUT que se repiten dentro de un mismo módulo",
+  "p": "125 números de RUT aparecen más de una vez dentro de la misma base (la mayoría en Otras Solicitudes e Informes Médicos). Puede ser un paciente que pidió lo mismo varias veces, o puede ser un caso duplicado que ya se atendió y se volvió a registrar por error.",
+  "s": "Revisar los grupos de RUT repetido en la sección “RUT duplicados” de cada módulo antes de gestionar un caso nuevo — así se evita atender (o pagar) dos veces lo mismo."
+ },
+ {
+  "sev": "serious",
+  "h": "19 RUT mal escritos",
+  "p": "19 registros tienen un RUT que no es válido: vacío, con formato raro, o con un dígito verificador que no corresponde al número. En algunos casos el campo RUT tiene, por error, un correo o un nombre en vez de un RUT.",
+  "s": "Corregir estos 19 casos en la base — el detalle exacto (fila, nombre y la corrección sugerida cuando existe) está disponible en la pestaña “Auditoría de RUT”."
  },
  {
   "sev": "warning",
-  "h": "Fechas de ingreso en blanco (Reembolsos)",
-  "p": "176 registros de Reembolsos no tienen fecha de ingreso, lo que impide ordenar los casos cronológicamente o medir tiempos de respuesta.",
-  "s": "Hacer obligatorio el campo de fecha en el formulario de Reembolsos y completar retroactivamente los registros históricos con la fecha disponible más cercana (cita o pago)."
+  "h": "Al menos 5 filas de prueba mezcladas con datos reales",
+  "p": "Se detectaron registros como “Prueba”, RUT “1234”, o textos de prueba mezclados entre las solicitudes reales. Estas filas distorsionan cualquier conteo o estadística que se calcule sobre la base (SLA, gestión, calidad).",
+  "s": "Eliminar o marcar claramente estas filas como “prueba” para que no se cuenten en las estadísticas de gestión."
  },
  {
-  "sev": "critical",
-  "h": "Término de licencia médica anterior al inicio",
-  "p": "En Informes Médicos existen casos donde la fecha de término de la licencia es anterior a la fecha de inicio — un error de digitación al traspasar los datos de la licencia.",
-  "s": "Agregar validación en el formulario: la fecha de término no puede guardarse si es anterior a la fecha de inicio."
+  "sev": "warning",
+  "h": "Calidad de la redacción: 700 solicitudes con detalle “Regular” y 24 “Deficiente”",
+  "p": "Al revisar cómo quedó escrita la descripción de cada solicitud (mayúsculas sostenidas, sin tildes, doble espacio, o directamente muy corta como para entender qué pide el paciente), 700 quedaron en un nivel “Regular” y 24 en “Deficiente” — textos tan cortos que el siguiente ejecutivo no puede saber qué se necesita sin volver a contactar al paciente.",
+  "s": "Pedir al equipo que, al registrar el detalle de una solicitud, escriba al menos una frase completa y clara — ayuda a que cualquier otro ejecutivo pueda retomar el caso sin tener que llamar de nuevo al paciente."
  }
 ]

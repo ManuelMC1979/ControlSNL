@@ -3,32 +3,22 @@
   "id": "reembolsos",
   "nombre": "Reembolsos",
   "icon": "💳",
-  "descripcion": "Solicitudes de reembolso de gastos médicos particulares ingresadas vía Call Center o formulario directo.",
-  "gestion": "88% de los casos gestionados — 3 solicitudes sin gestión registrada.",
-  "observacion": "El servicio “Salud Mental Online” concentra la mayoría de las solicitudes; 5 casos permanecen pendientes.",
-  "total": 228,
-  "sinError": 45,
-  "conError": 183,
+  "descripcion": "Solicitudes de reembolso de gastos médicos particulares.",
+  "gestion": "90.6% de los casos tiene gestión registrada — 3 sin gestión.",
+  "observacion": "1 RUT se repite dentro de este módulo (posible duplicado).",
+  "total": 32,
+  "sinError": 21,
+  "conError": 11,
   "rut": {
-   "valido": 226,
-   "vacio": 2,
+   "valido": 32,
+   "vacio": 0,
    "formato": 0,
    "dv": 0
   },
   "issues": [
    {
-    "t": "Fecha de ingreso en blanco",
-    "c": 170,
-    "sev": "warning"
-   },
-   {
-    "t": "Fecha de cita posterior al ingreso",
-    "c": 7,
-    "sev": "critical"
-   },
-   {
-    "t": "Fecha de ingreso en blanco + Fecha de cita futura",
-    "c": 6,
+    "t": "Fecha de ingreso futura",
+    "c": 11,
     "sev": "serious"
    }
   ]
@@ -37,47 +27,27 @@
   "id": "informes",
   "nombre": "Informes Médicos",
   "icon": "📄",
-  "descripcion": "Solicitudes de informes, certificados y licencias médicas (LM) gestionadas por el equipo.",
-  "gestion": "60% de los registros fueron ingresados directamente por el paciente, sin intervención de ejecutivo.",
-  "observacion": "Traumatología concentra 59% del volumen. El motivo “rechazo de licencia médica” es el más recurrente.",
-  "total": 430,
-  "sinError": 357,
-  "conError": 73,
+  "descripcion": "Solicitudes de informes, certificados y licencias médicas.",
+  "gestion": "100.0% de los casos tiene gestión registrada.",
+  "observacion": "25 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+  "total": 191,
+  "sinError": 74,
+  "conError": 117,
   "rut": {
-   "valido": 426,
+   "valido": 189,
    "vacio": 0,
-   "formato": 3,
-   "dv": 1
+   "formato": 2,
+   "dv": 0
   },
   "issues": [
    {
-    "t": "Fecha de formulario futura",
-    "c": 34,
-    "sev": "serious"
-   },
-   {
-    "t": "Atención posterior al formulario",
-    "c": 34,
+    "t": "Atención posterior al ingreso",
+    "c": 59,
     "sev": "critical"
    },
    {
-    "t": "Término de licencia médica futuro",
-    "c": 2,
-    "sev": "serious"
-   },
-   {
-    "t": "Fecha de formulario futura + Término de licencia anterior al inicio",
-    "c": 1,
-    "sev": "critical"
-   },
-   {
-    "t": "Término de licencia anterior al inicio",
-    "c": 1,
-    "sev": "critical"
-   },
-   {
-    "t": "Fecha de formulario futura + Término de licencia médica futuro",
-    "c": 1,
+    "t": "Fecha de ingreso futura",
+    "c": 58,
     "sev": "serious"
    }
   ]
@@ -86,32 +56,27 @@
   "id": "otras",
   "nombre": "Otras Solicitudes",
   "icon": "🗂️",
-  "descripcion": "Solicitudes diversas: recetas, órdenes médicas, certificados y confirmaciones diagnósticas.",
-  "gestion": "61% de los casos no tiene gestión BO registrada.",
-  "observacion": "“Receta médica” es el motivo más frecuente, con 273 solicitudes.",
-  "total": 691,
-  "sinError": 503,
-  "conError": 188,
+  "descripcion": "Recetas, órdenes médicas, certificados y otras solicitudes generales.",
+  "gestion": "54.6% de los casos tiene gestión registrada — 486 sin gestión.",
+  "observacion": "85 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+  "total": 1071,
+  "sinError": 801,
+  "conError": 270,
   "rut": {
-   "valido": 684,
-   "vacio": 0,
-   "formato": 4,
-   "dv": 3
+   "valido": 1057,
+   "vacio": 1,
+   "formato": 8,
+   "dv": 5
   },
   "issues": [
    {
-    "t": "Fecha de formulario futura",
-    "c": 105,
-    "sev": "serious"
-   },
-   {
-    "t": "Atención posterior al formulario",
-    "c": 81,
+    "t": "Atención posterior al ingreso",
+    "c": 156,
     "sev": "critical"
    },
    {
-    "t": "Fecha de formulario futura + Atención futura",
-    "c": 2,
+    "t": "Fecha de ingreso futura",
+    "c": 114,
     "sev": "serious"
    }
   ]
@@ -120,27 +85,56 @@
   "id": "cd",
   "nombre": "CD Pendiente",
   "icon": "🏥",
-  "descripcion": "Confirmaciones diagnósticas (CD) pendientes de agendamiento en centros presenciales.",
-  "gestion": "83% de los casos gestionado por un solo ejecutivo (Raquel).",
-  "observacion": "61 solicitudes sin gestión registrada; el volumen tuvo un pico en abril 2026.",
-  "total": 480,
-  "sinError": 368,
-  "conError": 112,
+  "descripcion": "Confirmaciones diagnósticas pendientes de agendamiento o respuesta.",
+  "gestion": "78.1% de los casos tiene gestión registrada — 44 sin gestión.",
+  "observacion": "14 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+  "total": 201,
+  "sinError": 80,
+  "conError": 121,
   "rut": {
-   "valido": 476,
+   "valido": 198,
    "vacio": 0,
-   "formato": 2,
+   "formato": 1,
    "dv": 2
   },
   "issues": [
    {
-    "t": "Fecha de formulario futura",
-    "c": 66,
+    "t": "Fecha de ingreso futura",
+    "c": 71,
     "sev": "serious"
    },
    {
-    "t": "Atención posterior al formulario",
-    "c": 46,
+    "t": "Atención posterior al ingreso",
+    "c": 50,
+    "sev": "critical"
+   }
+  ]
+ },
+ {
+  "id": "pacienteep",
+  "nombre": "Paciente Derivado EP",
+  "icon": "🧑‍⚕️",
+  "descripcion": "Pacientes derivados a Evaluación Preventiva (EP) desde otros servicios.",
+  "gestion": "100.0% de los casos tiene gestión registrada.",
+  "observacion": "No se detectaron RUT repetidos en este módulo.",
+  "total": 9,
+  "sinError": 4,
+  "conError": 5,
+  "rut": {
+   "valido": 9,
+   "vacio": 0,
+   "formato": 0,
+   "dv": 0
+  },
+  "issues": [
+   {
+    "t": "Fecha de ingreso futura",
+    "c": 4,
+    "sev": "serious"
+   },
+   {
+    "t": "Atención posterior al ingreso",
+    "c": 1,
     "sev": "critical"
    }
   ]

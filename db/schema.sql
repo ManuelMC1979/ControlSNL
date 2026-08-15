@@ -3,8 +3,8 @@
 
 CREATE TABLE IF NOT EXISTS master_records (
   id               SERIAL PRIMARY KEY,
-  module_id        TEXT NOT NULL,           -- reembolsos | informes | otras | cd
-  fila             INTEGER NOT NULL,        -- fila dentro de la hoja *_BASE original
+  module_id        TEXT NOT NULL,           -- reembolsos | informes | otras | cd | pacienteep
+  fila             INTEGER NOT NULL,        -- fila dentro de la hoja original
   nombre           TEXT NOT NULL,
   rut              TEXT,
   rut_estado       TEXT NOT NULL,           -- valido | vacio | formato | dv
@@ -14,15 +14,23 @@ CREATE TABLE IF NOT EXISTS master_records (
   paciente         TEXT,
   ejecutivo        TEXT,
   estado_bo        TEXT,
+  responsable_bo   TEXT,                    -- responsable BO asignado (cuando aplica, ej. Reembolsos)
   ingreso          TEXT,                    -- dd-mm-aaaa (texto, tal como se muestra)
   ingreso_sugerido TEXT,                    -- corrección sugerida si el ingreso quedó con día/mes invertido
   atencion         TEXT,
   atencion_sugerida TEXT,
-  inc_texto        TEXT,                    -- texto de inconsistencia de fecha tal como en la base original
+  inc_texto        TEXT,                    -- texto de inconsistencia de fecha
   inc_ok           BOOLEAN NOT NULL DEFAULT true,
   sla_estado       TEXT,                    -- dentro | fuera | invalido | sin_fecha
   dias             INTEGER,                 -- días hábiles transcurridos desde el ingreso
   sec_estado       TEXT,                    -- ok | mismo_dia | posterior | null (no comparable)
+  es_prueba        BOOLEAN NOT NULL DEFAULT false, -- fila de prueba/dummy detectada (ej. "Prueba", RUT "1234")
+  estado_gestion   TEXT,                    -- estado de gestión tal como quedó en la auditoría del archivo
+  repeticiones_rut INTEGER,                 -- cuántas veces se repite este RUT dentro del mismo módulo
+  calidad_texto    TEXT,                    -- Buena | Regular | Deficiente (calidad del detalle de la solicitud)
+  todo_mayusculas  BOOLEAN,
+  doble_espacio    BOOLEAN,
+  falta_tilde      BOOLEAN,
   UNIQUE(module_id, fila)
 );
 

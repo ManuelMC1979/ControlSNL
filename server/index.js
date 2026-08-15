@@ -55,13 +55,14 @@ app.get("/api/dashboard-data", async (req, res) => {
       pool.query("SELECT sev, h, p, s FROM causas ORDER BY orden"),
       pool.query(
         `SELECT module_id, fila, nombre, rut, rut_estado, rut_sugerencia, correo, servicio,
-                paciente, ejecutivo, estado_bo, ingreso, ingreso_sugerido, atencion,
-                atencion_sugerida, inc_texto, inc_ok, sla_estado, dias, sec_estado
+                paciente, ejecutivo, estado_bo, responsable_bo, ingreso, ingreso_sugerido, atencion,
+                atencion_sugerida, inc_texto, inc_ok, sla_estado, dias, sec_estado, es_prueba,
+                estado_gestion, repeticiones_rut, calidad_texto, todo_mayusculas, doble_espacio, falta_tilde
          FROM master_records ORDER BY module_id, fila`
       ),
     ]);
 
-    const master = { reembolsos: [], informes: [], otras: [], cd: [] };
+    const master = {};
     for (const row of masterRes.rows) {
       const mod = row.module_id;
       if (!master[mod]) master[mod] = [];
@@ -76,6 +77,7 @@ app.get("/api/dashboard-data", async (req, res) => {
         paciente: row.paciente,
         ejecutivo: row.ejecutivo,
         estadoBO: row.estado_bo,
+        responsableBO: row.responsable_bo,
         ingreso: row.ingreso,
         ingresoSugerido: row.ingreso_sugerido,
         atencion: row.atencion,
@@ -85,6 +87,13 @@ app.get("/api/dashboard-data", async (req, res) => {
         slaEstado: row.sla_estado,
         dias: row.dias,
         secEstado: row.sec_estado,
+        esPrueba: row.es_prueba,
+        estadoGestion: row.estado_gestion,
+        repeticionesRut: row.repeticiones_rut,
+        calidadTexto: row.calidad_texto,
+        todoMayusculas: row.todo_mayusculas,
+        dobleEspacio: row.doble_espacio,
+        faltaTilde: row.falta_tilde,
       });
     }
 

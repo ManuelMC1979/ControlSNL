@@ -154,11 +154,12 @@
     <section id="que-es">
       <h2>1. Qué es este panel</h2>
       <div class="h-sub">El objetivo, los datos que usa y lo que nunca vas a ver en pantalla</div>
-      <p>El panel revisa las cuatro bases de solicitudes SNL (Reembolsos, Informes Médicos, Otras Solicitudes y CD Pendiente) y busca tres tipos de problemas de forma automática:</p>
+      <p>El panel revisa las cinco áreas de solicitudes SNL (Reembolsos, Informes Médicos, Otras Solicitudes, CD Pendiente y Paciente Derivado EP) y busca varios tipos de problema de forma automática:</p>
       <ul>
         <li><b>Fechas que no calzan</b> — por ejemplo, una fecha de ingreso en el futuro, o una atención registrada después de que el caso ya había ingresado.</li>
-        <li><b>RUT mal escritos</b> — usando el cálculo oficial del dígito verificador chileno.</li>
+        <li><b>RUT mal escritos o repetidos</b> — usando el cálculo oficial del dígito verificador chileno, y detectando cuando el mismo RUT aparece más de una vez.</li>
         <li><b>Casos fuera de plazo (SLA)</b> — cuánto tiempo lleva abierto un caso, en días hábiles.</li>
+        <li><b>Gestión y calidad de los datos</b> — qué porcentaje de los casos tiene evidencia de que alguien los trabajó, y qué tan clara está escrita la solicitud.</li>
       </ul>
       <div class="card">
         <h4>🔒 Sobre los datos de pacientes</h4>
@@ -173,12 +174,12 @@
       <table class="gloss">
         <thead><tr><th>Pestaña</th><th>Qué contiene</th></tr></thead>
         <tbody>
-          <tr><td>📊 Resumen general</td><td>Una vista de pájaro de las cuatro bases juntas: volumen, inconsistencias y causas raíz.</td></tr>
+          <tr><td>📊 Resumen general</td><td>Una vista de pájaro de las cinco áreas juntas: volumen, inconsistencias y causas raíz.</td></tr>
           <tr><td>💳 Reembolsos</td><td>Todo lo relacionado a solicitudes de reembolso de gastos médicos.</td></tr>
           <tr><td>📄 Informes Médicos</td><td>Informes, certificados y licencias médicas.</td></tr>
           <tr><td>🗂️ Otras Solicitudes</td><td>Recetas, órdenes médicas y confirmaciones diagnósticas.</td></tr>
           <tr><td>🏥 CD Pendiente</td><td>Confirmaciones diagnósticas pendientes de agendamiento presencial.</td></tr>
-          <tr><td>🪪 Auditoría de RUT</td><td>El detalle consolidado de la validación de RUT en las cuatro bases.</td></tr>
+          <tr><td>🪪 Auditoría de RUT</td><td>El detalle consolidado de la validación de RUT en las cinco áreas.</td></tr>
         </tbody>
       </table>
       <p>El número en un círculo junto al nombre de cada módulo es la cantidad de casos con inconsistencia de fecha en esa base — te da una idea de dónde mirar primero.</p>
@@ -187,7 +188,7 @@
     <section id="resumen">
       <h2>3. Resumen general</h2>
       <div class="h-sub">La foto completa antes de entrar al detalle</div>
-      <p>Esta pestaña reúne los cuatro módulos en una sola vista. De arriba hacia abajo vas a encontrar:</p>
+      <p>Esta pestaña reúne los cinco módulos en una sola vista. De arriba hacia abajo vas a encontrar:</p>
       <ol>
         <li><b>Un aviso</b> con el porcentaje de RUT correctos y cuántos requieren corrección.</li>
         <li><b>Cuatro indicadores generales</b>: solicitudes totales, casos con inconsistencia de fecha, RUT mal escritos y módulos auditados.</li>
@@ -198,8 +199,8 @@
 
     <section id="modulo">
       <h2>4. Dentro de un módulo</h2>
-      <div class="h-sub">Reembolsos, Informes Médicos, Otras Solicitudes y CD Pendiente comparten la misma estructura</div>
-      <p>Cada uno de los cuatro módulos está organizado en las mismas cuatro secciones, siempre en el mismo orden. Una vez que entiendes una, entiendes las cuatro.</p>
+      <div class="h-sub">Reembolsos, Informes Médicos, Otras Solicitudes, CD Pendiente y Paciente Derivado EP comparten la misma estructura</div>
+      <p>Cada uno de los cinco módulos está organizado en las mismas secciones, siempre en el mismo orden. Una vez que entiendes uno, entiendes los cinco.</p>
 
       <h3 id="inconsistencias">4.1 Inconsistencias de fecha</h3>
       <p>Lista los distintos tipos de error de fecha encontrados en ese módulo (por ejemplo, "fecha de formulario futura" o "término de licencia anterior al inicio"), con la cantidad de casos y una etiqueta de gravedad a la derecha. Ver el <a href="#glosario">glosario</a> para lo que significa cada color.</p>
@@ -226,7 +227,7 @@
 
     <section id="auditoria-rut">
       <h2>5. Auditoría de RUT</h2>
-      <div class="h-sub">La vista consolidada de calidad de RUT en las cuatro bases</div>
+      <div class="h-sub">La vista consolidada de calidad de RUT en las cinco áreas</div>
       <p>Reúne lo mismo que aparece repartido en cada módulo, pero en un solo lugar: cuántos RUT se analizaron, cuántos son válidos, el detalle por tipo de error y una tabla comparativa por módulo. Al final explica en palabras simples cómo se validó cada RUT y qué se recomienda para evitar que se sigan escribiendo mal (validación automática en el formulario).</p>
     </section>
 
@@ -275,7 +276,7 @@
           <tr><td>Atención vs. ingreso</td><td>La fecha de atención debe ser estrictamente anterior a la fecha de ingreso/formulario.</td></tr>
         </tbody>
       </table>
-      <p>Todos los cálculos se hacen directamente sobre las cuatro bases activas del archivo de solicitudes — si la base se actualiza, hay que volver a generar el panel para reflejar los cambios.</p>
+      <p>Todos los cálculos se hacen directamente sobre las cinco bases activas del archivo de solicitudes — si la base se actualiza, hay que volver a generar el panel para reflejar los cambios.</p>
     </section>
 
     <section id="corregir">
