@@ -69,7 +69,7 @@ async function main() {
              ejecutivo, estado_bo, responsable_bo, ingreso, ingreso_sugerido, atencion, atencion_sugerida,
              inc_texto, inc_ok, sla_estado, dias, sec_estado, es_prueba, estado_gestion,
              repeticiones_rut, calidad_texto, todo_mayusculas, doble_espacio, falta_tilde)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)
            ON CONFLICT (module_id, fila) DO NOTHING`,
           [
             moduleId, r.fila, r.nombre, r.rut, r.rutEstado, r.rutSugerencia, r.correo, r.servicio,

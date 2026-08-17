@@ -140,10 +140,11 @@
     <a class="rail-link sub" href="#rut-modulo">5.2 Calidad del RUT</a>
     <a class="rail-link sub" href="#gestion-modulo">5.3 Gestión y calidad de los datos</a>
     <a class="rail-link" href="#auditoria-rut">6. Auditoría de RUT</a>
-    <a class="rail-link" href="#recuadros">7. Los recuadros clicables</a>
-    <a class="rail-link" href="#glosario">8. Glosario de etiquetas</a>
-    <a class="rail-link" href="#metodologia">9. Metodología</a>
-    <a class="rail-link" href="#corregir">10. Qué hacer con los hallazgos</a>
+    <a class="rail-link" href="#jefatura">7. Análisis Jefatura</a>
+    <a class="rail-link" href="#recuadros">8. Los recuadros clicables</a>
+    <a class="rail-link" href="#glosario">9. Glosario de etiquetas</a>
+    <a class="rail-link" href="#metodologia">10. Metodología</a>
+    <a class="rail-link" href="#corregir">11. Qué hacer con los hallazgos</a>
   </nav>
 
   <main class="main">
@@ -234,8 +235,20 @@
       <p>Reúne lo mismo que aparece repartido en cada módulo, pero en un solo lugar: cuántos RUT se analizaron, cuántos son válidos, el detalle por tipo de error y una tabla comparativa por módulo. Al final explica en palabras simples cómo se validó cada RUT y qué se recomienda para evitar que se sigan escribiendo mal (validación automática en el formulario).</p>
     </section>
 
+    <section id="jefatura">
+      <h2>7. Análisis Jefatura</h2>
+      <div class="h-sub">Una lectura pensada para gerencia: qué está llegando, no qué está mal</div>
+      <p>Mientras el resto del panel está enfocado en detectar y corregir errores (uso interno del equipo), esta pestaña agrupa todas las solicitudes de las 5 áreas por <b>categoría o motivo</b> (por ejemplo "Salud Mental Online", "Dermatología", "Confirmación Diagnóstica") y por <b>canal de ingreso</b> (si la solicitó el propio paciente o un ejecutivo de Call Center). Sirve para ver de un vistazo qué tipo de solicitud llega más y ayudar a decidir dónde reforzar el flujo. Muestra:</p>
+      <ol>
+        <li><b>Volumen por categoría de solicitud</b>, ordenado de mayor a menor, con el porcentaje que representa cada una sobre el total.</li>
+        <li><b>Categoría principal por módulo</b>: qué motivo predomina dentro de cada uno de los 5 módulos.</li>
+        <li><b>Canal de ingreso</b>: cuántas solicitudes llegaron directamente del paciente versus a través de un ejecutivo.</li>
+      </ol>
+      <p>Igual que en el resto del panel, cada categoría, fila de módulo o canal es clicable y abre el listado de casos, incluido el RUT y el botón para ir a la planilla. No incluye errores de RUT ni calidad de redacción — esos indicadores siguen disponibles en cada módulo y en "Auditoría de RUT", para uso interno.</p>
+    </section>
+
     <section id="recuadros">
-      <h2>7. Los recuadros clicables</h2>
+      <h2>8. Los recuadros clicables</h2>
       <div class="h-sub">Cómo reconocer qué se puede abrir</div>
       <p>Cualquier número que tenga la frase <span style="color:var(--accent); font-weight:700; font-size:12.5px;">Ver el detalle →</span> debajo, o que quede resaltado al pasar el mouse, se puede abrir. Al hacer clic se abre una ventana con una tabla: cada fila es un caso real, con la fila exacta donde está en la base interna para que lo puedas ubicar y corregir.</p>
       <ol class="steps">
@@ -247,7 +260,7 @@
     </section>
 
     <section id="glosario">
-      <h2>8. Glosario de etiquetas</h2>
+      <h2>9. Glosario de etiquetas</h2>
       <div class="h-sub">Qué significa cada color y cada palabra que vas a ver repetida</div>
       <div class="wrap-table">
       <table class="gloss">
@@ -263,7 +276,7 @@
     </section>
 
     <section id="metodologia">
-      <h2>9. Metodología</h2>
+      <h2>10. Metodología</h2>
       <div class="h-sub">Las reglas exactas detrás de cada cálculo</div>
       <table class="gloss">
         <thead><tr><th>Regla</th><th>Detalle</th></tr></thead>
@@ -278,7 +291,7 @@
     </section>
 
     <section id="corregir">
-      <h2>10. Qué hacer con los hallazgos</h2>
+      <h2>11. Qué hacer con los hallazgos</h2>
       <div class="h-sub">Un flujo simple para pasar de "detectado" a "corregido"</div>
       <ol class="steps">
         <li><b>Detectar</b>: entra al módulo correspondiente y revisa los indicadores en rojo o naranjo.</li>

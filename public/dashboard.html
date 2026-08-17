@@ -724,12 +724,102 @@ function renderAgosto(){
   `;
 }
 
+function renderJefatura(){
+  const allRows = [];
+  for(const [mod, rows] of Object.entries(MASTER_DATA)){
+    rows.forEach(r => allRows.push({...r, _mod: mod}));
+  }
+  const total = allRows.length;
+
+  const catCounts = {};
+  allRows.forEach(r=>{
+    const cat = (r.servicio||"").trim() || "(sin categoría)";
+    catCounts[cat] = (catCounts[cat]||0)+1;
+  });
+  const catList = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]);
+  const maxCat = catList.length ? catList[0][1] : 1;
+  const topCat = catList[0] || ["—",0];
+
+  const canalCounts = {};
+  allRows.forEach(r=>{
+    const canal = (r.paciente||"").trim() || "(sin dato)";
+    canalCounts[canal] = (canalCounts[canal]||0)+1;
+  });
+  const canalList = Object.entries(canalCounts).sort((a,b)=>b[1]-a[1]);
+  const maxCanal = canalList.length ? canalList[0][1] : 1;
+  const topCanal = canalList[0] || ["—",0];
+
+  const porModulo = MODULES.map(m=>{
+    const rows = allRows.filter(r=>r._mod===m.id);
+    const counts = {};
+    rows.forEach(r=>{ const c=(r.servicio||"").trim()||"(sin categoría)"; counts[c]=(counts[c]||0)+1; });
+    const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0] || null;
+    return {m, total: rows.length, top};
+  });
+
+  return `
+  <div class="lede">Vista pensada para jefatura: agrupa todas las solicitudes de las 5 áreas por <b>categoría o motivo de la solicitud</b> y por <b>canal de ingreso</b>, para ver de un vistazo qué está llegando más y dónde conviene reforzar el flujo. Los errores de RUT y la calidad de la redacción se siguen viendo en cada módulo y en "Auditoría de RUT" — esta vista es solo para lectura rápida de volumen.</div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Total de solicitudes</div><div class="val tabular">${total}</div></div>
+    <div class="kpi"><div class="lbl">Categoría más solicitada</div><div class="val" style="font-size:19px; line-height:1.25;">${esc(topCat[0])}</div><div class="hint">${topCat[1]} solicitudes · ${pct(topCat[1],total)}%</div></div>
+    <div class="kpi"><div class="lbl">Canal más usado</div><div class="val" style="font-size:19px; line-height:1.25;">${esc(topCanal[0])}</div><div class="hint">${topCanal[1]} solicitudes · ${pct(topCanal[1],total)}%</div></div>
+    <div class="kpi"><div class="lbl">Categorías distintas</div><div class="val tabular">${catList.length}</div></div>
+  </div>
+
+  <div class="section-title">Volumen por categoría de solicitud <span class="n">— las 5 áreas juntas, clic para ver el detalle</span></div>
+  <div class="card">
+    ${catList.map(([cat,c])=>`
+      <div class="issue-row clickable" data-kind="master" data-mod="" data-filter="categoria" data-cat="${esc(cat)}" data-title="${esc(cat)} — todos los módulos">
+        <div class="name">${esc(cat)}</div>
+        <div class="track"><div class="fill" style="width:${Math.max(2,(c/maxCat*100)).toFixed(1)}%;background:var(--accent)"></div></div>
+        <div class="count tabular">${c}</div>
+        <div class="pill good">${pct(c,total)}%</div>
+      </div>
+    `).join("")}
+  </div>
+
+  <div class="section-title">Categoría principal por módulo <span class="n">— qué motivo predomina en cada flujo</span></div>
+  <div class="card pad">
+    <table class="rutdef">
+      <thead><tr><th>Módulo</th><th>Solicitudes</th><th>Categoría principal</th><th>% del módulo</th></tr></thead>
+      <tbody>
+        ${porModulo.map(({m,total:t,top})=>{
+          if(!top || t===0) return `<tr><td>${m.icon} ${m.nombre}</td><td class="mono">0</td><td colspan="2" style="color:var(--ink-3)">Sin solicitudes</td></tr>`;
+          return `<tr class="clickable" data-kind="master" data-mod="${m.id}" data-filter="categoria" data-cat="${esc(top[0])}" data-title="${esc(top[0])} — ${m.nombre}">
+            <td>${m.icon} ${m.nombre}</td>
+            <td class="mono">${t}</td>
+            <td>${esc(top[0])}</td>
+            <td class="mono">${pct(top[1],t)}%</td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-title">Canal de ingreso <span class="n">— quién hace la solicitud, clic para ver el detalle</span></div>
+  <div class="card">
+    ${canalList.map(([canal,c])=>`
+      <div class="issue-row clickable" data-kind="master" data-mod="" data-filter="canal" data-cat="${esc(canal)}" data-title="${esc(canal)} — todos los módulos">
+        <div class="name">${esc(canal)}</div>
+        <div class="track"><div class="fill" style="width:${Math.max(2,(c/maxCanal*100)).toFixed(1)}%;background:var(--accent)"></div></div>
+        <div class="count tabular">${c}</div>
+        <div class="pill good">${pct(c,total)}%</div>
+      </div>
+    `).join("")}
+  </div>
+
+  <div class="foot-note">Esta vista agrupa por la categoría de servicio y el canal de ingreso que quedaron registrados en cada solicitud, cruzando las 5 áreas. Haz clic en cualquier categoría, módulo o canal para ver el listado de casos, incluido el RUT.</div>
+  `;
+}
+
 function build(){
   const TABS = [
     {id:"resumen", label:"Resumen general", icon:"📊", render:renderResumen, count:null},
     {id:"agosto", label:`Análisis de ${MES_NOMBRE[REPORT_MES][0].toUpperCase()+MES_NOMBRE[REPORT_MES].slice(1)}`, icon:"📅", render:renderAgosto, count:null},
     ...MODULES.map(m=>({id:m.id, label:m.nombre, icon:m.icon, render:()=>renderModulePanel(m), count:m.conError})),
     {id:"rut", label:"Auditoría de RUT", icon:"🪪", render:renderRutTab, count:RUT_MAL},
+    {id:"jefatura", label:"Análisis Jefatura", icon:"📈", render:renderJefatura, count:null},
   ];
 
   const nav = document.getElementById("railNav");
@@ -861,12 +951,23 @@ function rowMeta(filterKey, r){
   if(filterKey==="agostoCalidadBuena") return {text:"Buena", sev:"good"};
   if(filterKey==="agostoCalidadRegular") return {text:"Regular"+[r.todoMayusculas&&" · mayúsculas",r.dobleEspacio&&" · doble espacio",r.faltaTilde&&" · sin tilde"].filter(Boolean).join(""), sev:"warning"};
   if(filterKey==="agostoCalidadDeficiente") return {text:"Deficiente (detalle muy corto o vacío)", sev:"critical"};
+  if(filterKey==="categoria" || filterKey==="canal"){
+    const sinGestion = r.estadoGestion && /SIN/i.test(r.estadoGestion);
+    return {text: r.estadoGestion || "Sin dato de gestión", sev: sinGestion ? "critical" : "good"};
+  }
   // total / sinError / conError
   return {text: r.incTexto || "—", sev: r.incOk ? "good" : "critical"};
 }
 
-function openMasterList(mod, filterKey, title){
-  const pred = MASTER_FILTERS[filterKey] || (()=>true);
+function openMasterList(mod, filterKey, title, extra){
+  let pred;
+  if(filterKey === "categoria"){
+    pred = r => ((r.servicio||"").trim() || "(sin categoría)") === extra;
+  } else if(filterKey === "canal"){
+    pred = r => ((r.paciente||"").trim() || "(sin dato)") === extra;
+  } else {
+    pred = MASTER_FILTERS[filterKey] || (()=>true);
+  }
   let items = [];
   if(mod){
     items = (MASTER_DATA[mod] || []).filter(pred).map(r => ({...r, _mod: mod}));
@@ -949,7 +1050,7 @@ document.addEventListener("click", e=>{
   const trigger = e.target.closest("[data-title]");
   if(trigger && overlay.contains(trigger)===false){
     if(trigger.dataset.kind === "master"){
-      openMasterList(trigger.dataset.mod, trigger.dataset.filter || "total", trigger.dataset.title);
+      openMasterList(trigger.dataset.mod, trigger.dataset.filter || "total", trigger.dataset.title, trigger.dataset.cat);
     } else {
       openRutModal(trigger.dataset.mod || null, trigger.dataset.tipo || null, trigger.dataset.title);
     }
