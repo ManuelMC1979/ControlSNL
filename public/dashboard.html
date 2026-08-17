@@ -786,7 +786,8 @@ function renderJefatura(){
     return {cat, total:c, sinGestion, pctSin: c ? (100*sinGestion/c) : 0};
   }).filter(x=>x.sinGestion>0).sort((a,b)=> b.pctSin - a.pctSin);
 
-  const otrasRows = MASTER_DATA["otras"] || [];
+  const otrasRowsTodas = MASTER_DATA["otras"] || [];
+  const otrasRows = OTRAS_MOTIVO_MES ? otrasRowsTodas.filter(r=>esDelMes(r, OTRAS_MOTIVO_MES, ANIO_ACTUAL)) : otrasRowsTodas;
   const otrasConDetalle = otrasRows.filter(r=>r.motivoDetalle);
   const otrasSinDetalle = otrasRows.length - otrasConDetalle.length;
   const otrasDeficiente = otrasRows.filter(r=>r.calidadTexto==="Deficiente").length;
@@ -856,15 +857,23 @@ function renderJefatura(){
 
   <div class="section-title">Otras Solicitudes: qué están pidiendo <span class="n">— según el texto de "Detalle su solicitud", clic para ver los casos</span></div>
   <div class="lede" style="margin-top:-10px; margin-bottom:14px;">Clasificación automática por palabras clave del texto que escribió cada persona en esa pestaña. Una solicitud puede mencionar más de un motivo a la vez, por eso los porcentajes no suman 100%. Sirve para ver qué se está pidiendo más y si el campo se está llenando con información útil para gestionar el caso.</div>
+  <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+    <button class="mes-pill ${!OTRAS_MOTIVO_MES?'active':''}" data-otras-mes-pill="">Todos los meses</button>
+    ${MESES_OTRAS.map(mes=>`
+      <button class="mes-pill ${mes===OTRAS_MOTIVO_MES?'active':''}" data-otras-mes-pill="${mes}">
+        ${MES_NOMBRE[mes][0].toUpperCase()+MES_NOMBRE[mes].slice(1)}
+      </button>
+    `).join("")}
+  </div>
   <div class="card">
-    ${motivoList.map(([slug,c])=>`
-      <div class="issue-row clickable" data-kind="master" data-mod="otras" data-filter="motivoOtras" data-cat="${slug}" data-title="${esc(MOTIVO_LABEL[slug]||slug)} — Otras Solicitudes">
+    ${motivoList.length ? motivoList.map(([slug,c])=>`
+      <div class="issue-row clickable" data-kind="master" data-mod="otras" data-filter="motivoOtras" data-cat="${slug}" data-title="${esc(MOTIVO_LABEL[slug]||slug)} — Otras Solicitudes${OTRAS_MOTIVO_MES?', '+MES_NOMBRE[OTRAS_MOTIVO_MES]:''}">
         <div class="name">${esc(MOTIVO_LABEL[slug]||slug)}</div>
         <div class="track"><div class="fill" style="width:${Math.max(2,(c/maxMotivo*100)).toFixed(1)}%;background:var(--accent)"></div></div>
         <div class="count tabular">${c}</div>
         <div class="pill good">${pct(c,otrasConDetalle.length)}%</div>
       </div>
-    `).join("")}
+    `).join("") : `<div style="padding:16px 20px;color:var(--ink-3);font-size:13px;">No hay solicitudes de Otras Solicitudes en ${MES_NOMBRE[OTRAS_MOTIVO_MES]}.</div>`}
   </div>
   <div class="foot-note">${otrasSinDetalle} solicitudes de Otras Solicitudes quedaron sin texto en "Detalle su solicitud" (campo vacío), y ${otrasDeficiente} tienen una redacción calificada como Deficiente en la sección de calidad — ambos casos dificultan saber qué se pidió sin volver a contactar al paciente.</div>
 
@@ -978,7 +987,10 @@ function openRutModal(mod, tipo, title){
 function closeRutModal(){ overlay.classList.remove("open"); }
 
 /* ---------- Mes actual (para el módulo "Análisis de Agosto") ---------- */
-let SELECTED_MES = 8, SELECTED_ANIO = 2026;
+const ANIO_ACTUAL = 2026;
+let SELECTED_MES = 8, SELECTED_ANIO = ANIO_ACTUAL;
+const MESES_OTRAS = [5,6,7];
+let OTRAS_MOTIVO_MES = null;
 function esDelMes(r, mes, anio){
   if(!r.ingreso) return false;
   const partes = r.ingreso.split("-");
@@ -1042,7 +1054,7 @@ function openMasterList(mod, filterKey, title, extra){
   } else if(filterKey === "categoriaSinGestion"){
     pred = r => ((r.servicio||"").trim() || "(sin categoría)") === extra && r.estadoGestion && /SIN/i.test(r.estadoGestion);
   } else if(filterKey === "motivoOtras"){
-    pred = r => (r.motivoDetalle||"").split(",").includes(extra);
+    pred = r => (r.motivoDetalle||"").split(",").includes(extra) && (!OTRAS_MOTIVO_MES || esDelMes(r, OTRAS_MOTIVO_MES, ANIO_ACTUAL));
   } else {
     pred = MASTER_FILTERS[filterKey] || (()=>true);
   }
@@ -1124,6 +1136,13 @@ document.addEventListener("click", e=>{
   if(mesPill){
     SELECTED_MES = Number(mesPill.dataset.mesPill);
     document.getElementById("panel-agosto").innerHTML = renderAgosto();
+    return;
+  }
+  // 0b) clic en un mes del selector de "Otras Solicitudes: qué están pidiendo" (dentro de Análisis Jefatura)
+  const otrasMesPill = e.target.closest("[data-otras-mes-pill]");
+  if(otrasMesPill){
+    OTRAS_MOTIVO_MES = otrasMesPill.dataset.otrasMesPill ? Number(otrasMesPill.dataset.otrasMesPill) : null;
+    document.getElementById("panel-jefatura").innerHTML = renderJefatura();
     return;
   }
   // 1) clic en una fila de una lista -> abre el detalle del registro puntual
