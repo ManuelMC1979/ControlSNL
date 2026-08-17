@@ -130,6 +130,14 @@
   .pill.serious{ background:var(--serious-soft); color:var(--serious-ink); }
   .pill.critical{ background:var(--critical-soft); color:var(--critical-ink); }
 
+  .mes-pill{
+    padding:8px 16px; border-radius:99px; border:none; cursor:pointer;
+    font-family:inherit; font-size:13px; font-weight:600;
+    background:var(--surface-2); color:var(--ink-2);
+  }
+  .mes-pill:hover{ background:var(--accent-soft); }
+  .mes-pill.active{ background:var(--accent); color:var(--accent-ink); }
+
   /* compare bars (module vs module) */
   .cmp-row{ display:grid; grid-template-columns:150px 1fr 70px; gap:14px; align-items:center; padding:9px 0; }
   .cmp-row .track{ height:14px; background:var(--surface-2); border-radius:5px; overflow:hidden; display:flex; }
@@ -644,12 +652,13 @@ function renderRutTab(){
 }
 
 const MES_NOMBRE = {1:"enero",2:"febrero",3:"marzo",4:"abril",5:"mayo",6:"junio",7:"julio",8:"agosto",9:"septiembre",10:"octubre",11:"noviembre",12:"diciembre"};
+const MESES_DISPONIBLES = [6,7,8];
 
 function renderAgosto(){
-  const mesLabel = MES_NOMBRE[REPORT_MES];
+  const mesLabel = MES_NOMBRE[SELECTED_MES];
   const allRows = [];
   for(const [mod, rows] of Object.entries(MASTER_DATA)){
-    rows.forEach(r => { if(esDelMes(r, REPORT_MES, REPORT_ANIO)) allRows.push({...r, _mod: mod}); });
+    rows.forEach(r => { if(esDelMes(r, SELECTED_MES, SELECTED_ANIO)) allRows.push({...r, _mod: mod}); });
   }
   const total = allRows.length;
   const sinGestion = allRows.filter(r=>r.estadoGestion && /SIN/i.test(r.estadoGestion)).length;
@@ -672,25 +681,33 @@ function renderAgosto(){
   });
 
   return `
-  <div class="lede">Lo mismo que ves en cada módulo, pero filtrado solo a las solicitudes que <b>ingresaron en ${mesLabel} de ${REPORT_ANIO}</b>, juntando las 5 áreas en un solo resumen. Sirve para revisar qué tan al día está el equipo con lo más reciente, sin mezclarlo con la carga histórica.</div>
+  <div class="lede">Lo mismo que ves en cada módulo, pero filtrado solo a las solicitudes que <b>ingresaron en el mes elegido</b>, juntando las 5 áreas en un solo resumen. Sirve para revisar qué tan al día está el equipo, mes a mes, sin mezclarlo con la carga histórica.</div>
+
+  <div style="display:flex; gap:8px; margin-bottom:18px;">
+    ${MESES_DISPONIBLES.map(mes=>`
+      <button class="mes-pill ${mes===SELECTED_MES?'active':''}" data-mes-pill="${mes}">
+        ${MES_NOMBRE[mes][0].toUpperCase()+MES_NOMBRE[mes].slice(1)}
+      </button>
+    `).join("")}
+  </div>
 
   <div class="kpis">
-    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="agostoTotal" data-title="Solicitudes de ${mesLabel} — Todos los módulos">
+    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="mesTotal" data-title="Solicitudes de ${mesLabel} — Todos los módulos">
       <div class="lbl">Solicitudes de ${mesLabel}</div>
       <div class="val tabular">${total}</div>
       <div class="hint">Ver el detalle →</div>
     </div>
-    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="agostoSinGestion" data-title="Sin gestión registrada — ${mesLabel}, todos los módulos">
+    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="mesSinGestion" data-title="Sin gestión registrada — ${mesLabel}, todos los módulos">
       <div class="lbl">Sin gestión registrada</div>
       <div class="val tabular" style="color:var(--critical-ink)">${sinGestion}<small>${pct(sinGestion,total)}%</small></div>
       <div class="hint">Ver el detalle →</div>
     </div>
-    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="agostoRutDuplicado" data-title="RUT que se repiten — ${mesLabel}, todos los módulos">
+    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="mesRutDuplicado" data-title="RUT que se repiten — ${mesLabel}, todos los módulos">
       <div class="lbl">RUT que se repiten</div>
       <div class="val tabular" style="color:var(--serious-ink)">${rutDupSet.size}<small>${rutDupRegistros} registros</small></div>
       <div class="hint">Ver el detalle →</div>
     </div>
-    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="agostoRutMal" data-title="RUT mal escritos — ${mesLabel}, todos los módulos">
+    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="mesRutMal" data-title="RUT mal escritos — ${mesLabel}, todos los módulos">
       <div class="lbl">RUT mal escritos</div>
       <div class="val tabular" style="color:var(--critical-ink)">${rutMal}<small>${pct(rutMal,total)}%</small></div>
       <div class="hint">Ver el detalle →</div>
@@ -699,13 +716,13 @@ function renderAgosto(){
 
   <div class="section-title">Calidad de la redacción <span class="n">— solicitudes de ${mesLabel}, las 5 áreas juntas</span></div>
   <div class="card">
-    ${buena ? sparkRow("Buena — se entiende sin problema", buena, total, "good", {kind:"master", mod:"", filterKey:"agostoCalidadBuena", title:`Calidad Buena — ${mesLabel}`}) : ""}
-    ${regular ? sparkRow("Regular — mayúsculas sostenidas, sin tildes o doble espacio", regular, total, "warning", {kind:"master", mod:"", filterKey:"agostoCalidadRegular", title:`Calidad Regular — ${mesLabel}`}) : ""}
-    ${deficiente ? sparkRow("Deficiente — el detalle es muy corto para entender qué se pide", deficiente, total, "critical", {kind:"master", mod:"", filterKey:"agostoCalidadDeficiente", title:`Calidad Deficiente — ${mesLabel}`}) : ""}
+    ${buena ? sparkRow("Buena — se entiende sin problema", buena, total, "good", {kind:"master", mod:"", filterKey:"mesCalidadBuena", title:`Calidad Buena — ${mesLabel}`}) : ""}
+    ${regular ? sparkRow("Regular — mayúsculas sostenidas, sin tildes o doble espacio", regular, total, "warning", {kind:"master", mod:"", filterKey:"mesCalidadRegular", title:`Calidad Regular — ${mesLabel}`}) : ""}
+    ${deficiente ? sparkRow("Deficiente — el detalle es muy corto para entender qué se pide", deficiente, total, "critical", {kind:"master", mod:"", filterKey:"mesCalidadDeficiente", title:`Calidad Deficiente — ${mesLabel}`}) : ""}
     ${(buena+regular+deficiente)===0 ? `<div style="padding:16px 20px;color:var(--ink-3);font-size:13px;">Ninguna solicitud de ${mesLabel} tiene calidad de redacción evaluada en este módulo.</div>` : ""}
   </div>
 
-  <div class="section-title">Por módulo <span class="n">— solo ${mesLabel} de ${REPORT_ANIO}</span></div>
+  <div class="section-title">Por módulo <span class="n">— solo ${mesLabel} de ${SELECTED_ANIO}</span></div>
   <div class="card pad">
     <table class="rutdef">
       <thead><tr><th>Módulo</th><th>Solicitudes</th><th>Sin gestión</th><th>RUT duplicados</th><th>RUT mal escritos</th><th>Calidad Regular/Deficiente</th></tr></thead>
@@ -715,9 +732,9 @@ function renderAgosto(){
           return `<tr>
             <td>${m.icon} ${m.nombre}</td>
             <td class="mono">${t}</td>
-            <td class="mono ${sg>0?'clickable':''}" ${sg>0?`data-kind="master" data-filter="agostoSinGestion" data-mod="${m.id}" data-title="Sin gestión — ${m.nombre}, ${mesLabel}"`:''} style="${sg>0?'color:var(--critical-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${sg}</td>
-            <td class="mono ${rd>0?'clickable':''}" ${rd>0?`data-kind="master" data-filter="agostoRutDuplicado" data-mod="${m.id}" data-title="RUT duplicados — ${m.nombre}, ${mesLabel}"`:''} style="${rd>0?'color:var(--serious-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${rd}</td>
-            <td class="mono ${rm>0?'clickable':''}" ${rm>0?`data-kind="master" data-filter="agostoRutMal" data-mod="${m.id}" data-title="RUT mal escritos — ${m.nombre}, ${mesLabel}"`:''} style="${rm>0?'color:var(--critical-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${rm}</td>
+            <td class="mono ${sg>0?'clickable':''}" ${sg>0?`data-kind="master" data-filter="mesSinGestion" data-mod="${m.id}" data-title="Sin gestión — ${m.nombre}, ${mesLabel}"`:''} style="${sg>0?'color:var(--critical-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${sg}</td>
+            <td class="mono ${rd>0?'clickable':''}" ${rd>0?`data-kind="master" data-filter="mesRutDuplicado" data-mod="${m.id}" data-title="RUT duplicados — ${m.nombre}, ${mesLabel}"`:''} style="${rd>0?'color:var(--serious-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${rd}</td>
+            <td class="mono ${rm>0?'clickable':''}" ${rm>0?`data-kind="master" data-filter="mesRutMal" data-mod="${m.id}" data-title="RUT mal escritos — ${m.nombre}, ${mesLabel}"`:''} style="${rm>0?'color:var(--critical-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${rm}</td>
             <td class="mono">${reg+def}</td>
           </tr>`;
         }).join("")}
@@ -725,7 +742,7 @@ function renderAgosto(){
     </table>
   </div>
   <div class="foot-note">
-    “Sin gestión registrada”, “RUT que se repiten” y “Calidad de la redacción” usan la misma información que ya viene en la auditoría del archivo — acá solo se filtra a las solicitudes cuya fecha de ingreso cae en ${mesLabel} de ${REPORT_ANIO}. Haz clic en cualquier número para ver el detalle, incluido el RUT.
+    “Sin gestión registrada”, “RUT que se repiten” y “Calidad de la redacción” usan la misma información que ya viene en la auditoría del archivo — acá solo se filtra a las solicitudes cuya fecha de ingreso cae en ${mesLabel} de ${SELECTED_ANIO}. Haz clic en cualquier número para ver el detalle, incluido el RUT.
   </div>
   `;
 }
@@ -871,7 +888,7 @@ function renderJefatura(){
 function build(){
   const TABS = [
     {id:"resumen", label:"Resumen general", icon:"📊", render:renderResumen, count:null},
-    {id:"agosto", label:`Análisis de ${MES_NOMBRE[REPORT_MES][0].toUpperCase()+MES_NOMBRE[REPORT_MES].slice(1)}`, icon:"📅", render:renderAgosto, count:null},
+    {id:"agosto", label:"Análisis Mensual", icon:"📅", render:renderAgosto, count:null},
     ...MODULES.map(m=>({id:m.id, label:m.nombre, icon:m.icon, render:()=>renderModulePanel(m), count:m.conError})),
     {id:"rut", label:"Auditoría de RUT", icon:"🪪", render:renderRutTab, count:RUT_MAL},
     {id:"jefatura", label:"Análisis Jefatura", icon:"📈", render:renderJefatura, count:null},
@@ -961,7 +978,7 @@ function openRutModal(mod, tipo, title){
 function closeRutModal(){ overlay.classList.remove("open"); }
 
 /* ---------- Mes actual (para el módulo "Análisis de Agosto") ---------- */
-const REPORT_MES = 8, REPORT_ANIO = 2026;
+let SELECTED_MES = 8, SELECTED_ANIO = 2026;
 function esDelMes(r, mes, anio){
   if(!r.ingreso) return false;
   const partes = r.ingreso.split("-");
@@ -982,13 +999,13 @@ const MASTER_FILTERS = {
   calidadDeficiente: r => r.calidadTexto === "Deficiente",
   rutDuplicado: r => r.repeticionesRut && r.repeticionesRut > 1 && r.rutEstado === "valido",
   esPrueba: r => r.esPrueba,
-  agostoTotal: r => esDelMes(r, REPORT_MES, REPORT_ANIO),
-  agostoSinGestion: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.estadoGestion && /SIN/i.test(r.estadoGestion),
-  agostoRutDuplicado: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.repeticionesRut && r.repeticionesRut > 1 && r.rutEstado === "valido",
-  agostoRutMal: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.rutEstado !== "valido",
-  agostoCalidadBuena: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.calidadTexto === "Buena",
-  agostoCalidadRegular: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.calidadTexto === "Regular",
-  agostoCalidadDeficiente: r => esDelMes(r, REPORT_MES, REPORT_ANIO) && r.calidadTexto === "Deficiente",
+  mesTotal: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO),
+  mesSinGestion: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.estadoGestion && /SIN/i.test(r.estadoGestion),
+  mesRutDuplicado: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.repeticionesRut && r.repeticionesRut > 1 && r.rutEstado === "valido",
+  mesRutMal: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.rutEstado !== "valido",
+  mesCalidadBuena: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.calidadTexto === "Buena",
+  mesCalidadRegular: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.calidadTexto === "Regular",
+  mesCalidadDeficiente: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.calidadTexto === "Deficiente",
 };
 
 function rowMeta(filterKey, r){
@@ -999,13 +1016,13 @@ function rowMeta(filterKey, r){
   if(filterKey==="calidadDeficiente") return {text:"Deficiente (detalle muy corto o vacío)", sev:"critical"};
   if(filterKey==="rutDuplicado") return {text:`Se repite ${r.repeticionesRut} veces`, sev:"serious"};
   if(filterKey==="esPrueba") return {text:"Registro de prueba/dummy", sev:"serious"};
-  if(filterKey==="agostoTotal") return {text: r.incTexto || "—", sev: r.incOk ? "good" : "critical"};
-  if(filterKey==="agostoSinGestion") return {text: r.estadoGestion || "Sin gestión", sev:"critical"};
-  if(filterKey==="agostoRutDuplicado") return {text:`RUT se repite ${r.repeticionesRut} veces`, sev:"serious"};
-  if(filterKey==="agostoRutMal") return {text: TIPO_LABEL[r.rutEstado] || "RUT mal escrito", sev: TIPO_SEV[r.rutEstado] || "serious"};
-  if(filterKey==="agostoCalidadBuena") return {text:"Buena", sev:"good"};
-  if(filterKey==="agostoCalidadRegular") return {text:"Regular"+[r.todoMayusculas&&" · mayúsculas",r.dobleEspacio&&" · doble espacio",r.faltaTilde&&" · sin tilde"].filter(Boolean).join(""), sev:"warning"};
-  if(filterKey==="agostoCalidadDeficiente") return {text:"Deficiente (detalle muy corto o vacío)", sev:"critical"};
+  if(filterKey==="mesTotal") return {text: r.incTexto || "—", sev: r.incOk ? "good" : "critical"};
+  if(filterKey==="mesSinGestion") return {text: r.estadoGestion || "Sin gestión", sev:"critical"};
+  if(filterKey==="mesRutDuplicado") return {text:`RUT se repite ${r.repeticionesRut} veces`, sev:"serious"};
+  if(filterKey==="mesRutMal") return {text: TIPO_LABEL[r.rutEstado] || "RUT mal escrito", sev: TIPO_SEV[r.rutEstado] || "serious"};
+  if(filterKey==="mesCalidadBuena") return {text:"Buena", sev:"good"};
+  if(filterKey==="mesCalidadRegular") return {text:"Regular"+[r.todoMayusculas&&" · mayúsculas",r.dobleEspacio&&" · doble espacio",r.faltaTilde&&" · sin tilde"].filter(Boolean).join(""), sev:"warning"};
+  if(filterKey==="mesCalidadDeficiente") return {text:"Deficiente (detalle muy corto o vacío)", sev:"critical"};
   if(filterKey==="categoria" || filterKey==="canal"){
     const sinGestion = r.estadoGestion && /SIN/i.test(r.estadoGestion);
     return {text: r.estadoGestion || "Sin dato de gestión", sev: sinGestion ? "critical" : "good"};
@@ -1102,6 +1119,13 @@ function openRecordModal(mod, fila){
 function closeRecordModal(){ recordOverlay.classList.remove("open"); }
 
 document.addEventListener("click", e=>{
+  // 0) clic en un mes del selector de "Análisis Mensual" -> cambia el mes y vuelve a dibujar ese panel
+  const mesPill = e.target.closest("[data-mes-pill]");
+  if(mesPill){
+    SELECTED_MES = Number(mesPill.dataset.mesPill);
+    document.getElementById("panel-agosto").innerHTML = renderAgosto();
+    return;
+  }
   // 1) clic en una fila de una lista -> abre el detalle del registro puntual
   const row = e.target.closest("tr[data-fila]");
   if(row){
