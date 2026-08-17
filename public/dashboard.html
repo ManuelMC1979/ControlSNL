@@ -299,6 +299,12 @@ const SEV_LABEL = {good:"OK", warning:"MEDIA", serious:"ALTA", critical:"CRÍTIC
 const TIPO_LABEL = {vacio:"Campo vacío", formato:"Formato no reconocible", dv:"Dígito verificador incorrecto"};
 const TIPO_SEV = {vacio:"warning", formato:"serious", dv:"critical"};
 const SHEET_NAME = {reembolsos:"Reembolsos", informes:"CDPendiente_BASE", otras:"Otras solicitudes", cd:"Cita pendiente Conf.Diag", pacienteep:"Paciente derivado EP"};
+const MOTIVO_LABEL = {
+  licencia:"Licencia médica", receta:"Receta / medicamentos", examen:"Orden de examen / imágenes",
+  informe:"Informe / certificado de atención", reembolso:"Boleta / reembolso / devolución de dinero",
+  agendar:"Confirmar / reagendar hora", correccion:"Corrección de datos", derivacion:"Derivación (kinesiología, psicología, especialista)",
+  demora:"No ha llegado / demora en respuesta", prueba:"Prueba / dato de prueba", otro:"Otro / sin motivo identificable",
+};
 
 let EXCEL_SHARE_LINK = "";
 function buildExcelLink(mod, fila){
@@ -763,6 +769,15 @@ function renderJefatura(){
     return {cat, total:c, sinGestion, pctSin: c ? (100*sinGestion/c) : 0};
   }).filter(x=>x.sinGestion>0).sort((a,b)=> b.pctSin - a.pctSin);
 
+  const otrasRows = MASTER_DATA["otras"] || [];
+  const otrasConDetalle = otrasRows.filter(r=>r.motivoDetalle);
+  const otrasSinDetalle = otrasRows.length - otrasConDetalle.length;
+  const otrasDeficiente = otrasRows.filter(r=>r.calidadTexto==="Deficiente").length;
+  const motivoCounts = {};
+  otrasConDetalle.forEach(r=>{ r.motivoDetalle.split(",").forEach(slug=>{ motivoCounts[slug] = (motivoCounts[slug]||0)+1; }); });
+  const motivoList = Object.entries(motivoCounts).sort((a,b)=>b[1]-a[1]);
+  const maxMotivo = motivoList.length ? motivoList[0][1] : 1;
+
   return `
   <div class="lede">Vista pensada para jefatura: agrupa todas las solicitudes de las 5 áreas por <b>categoría o motivo de la solicitud</b> y por <b>canal de ingreso</b>, para ver de un vistazo qué está llegando más y dónde conviene reforzar el flujo. Los errores de RUT y la calidad de la redacción se siguen viendo en cada módulo y en "Auditoría de RUT" — esta vista es solo para lectura rápida de volumen.</div>
 
@@ -821,6 +836,20 @@ function renderJefatura(){
     </table>
     ` : `<div style="padding:4px 2px;color:var(--ink-3);font-size:13px;">Ninguna categoría tiene solicitudes sin gestión registrada.</div>`}
   </div>
+
+  <div class="section-title">Otras Solicitudes: qué están pidiendo <span class="n">— según el texto de "Detalle su solicitud", clic para ver los casos</span></div>
+  <div class="lede" style="margin-top:-10px; margin-bottom:14px;">Clasificación automática por palabras clave del texto que escribió cada persona en esa pestaña. Una solicitud puede mencionar más de un motivo a la vez, por eso los porcentajes no suman 100%. Sirve para ver qué se está pidiendo más y si el campo se está llenando con información útil para gestionar el caso.</div>
+  <div class="card">
+    ${motivoList.map(([slug,c])=>`
+      <div class="issue-row clickable" data-kind="master" data-mod="otras" data-filter="motivoOtras" data-cat="${slug}" data-title="${esc(MOTIVO_LABEL[slug]||slug)} — Otras Solicitudes">
+        <div class="name">${esc(MOTIVO_LABEL[slug]||slug)}</div>
+        <div class="track"><div class="fill" style="width:${Math.max(2,(c/maxMotivo*100)).toFixed(1)}%;background:var(--accent)"></div></div>
+        <div class="count tabular">${c}</div>
+        <div class="pill good">${pct(c,otrasConDetalle.length)}%</div>
+      </div>
+    `).join("")}
+  </div>
+  <div class="foot-note">${otrasSinDetalle} solicitudes de Otras Solicitudes quedaron sin texto en "Detalle su solicitud" (campo vacío), y ${otrasDeficiente} tienen una redacción calificada como Deficiente en la sección de calidad — ambos casos dificultan saber qué se pidió sin volver a contactar al paciente.</div>
 
   <div class="section-title">Canal de ingreso <span class="n">— quién hace la solicitud, clic para ver el detalle</span></div>
 
@@ -982,6 +1011,7 @@ function rowMeta(filterKey, r){
     return {text: r.estadoGestion || "Sin dato de gestión", sev: sinGestion ? "critical" : "good"};
   }
   if(filterKey==="categoriaSinGestion") return {text: r.estadoGestion || "Sin gestión", sev:"critical"};
+  if(filterKey==="motivoOtras") return {text: r.calidadTexto || "—", sev: r.calidadTexto==="Deficiente" ? "critical" : r.calidadTexto==="Regular" ? "warning" : "good"};
   // total / sinError / conError
   return {text: r.incTexto || "—", sev: r.incOk ? "good" : "critical"};
 }
@@ -994,6 +1024,8 @@ function openMasterList(mod, filterKey, title, extra){
     pred = r => ((r.paciente||"").trim() || "(sin dato)") === extra;
   } else if(filterKey === "categoriaSinGestion"){
     pred = r => ((r.servicio||"").trim() || "(sin categoría)") === extra && r.estadoGestion && /SIN/i.test(r.estadoGestion);
+  } else if(filterKey === "motivoOtras"){
+    pred = r => (r.motivoDetalle||"").split(",").includes(extra);
   } else {
     pred = MASTER_FILTERS[filterKey] || (()=>true);
   }
@@ -1060,6 +1092,7 @@ function openRecordModal(mod, fila){
     fieldRow("Fecha respuesta formulario", (r.ingreso || `<span class="muted">— sin registrar</span>`) + (r.ingresoSugerido ? ` <span style="color:var(--good-ink);font-weight:700">→ ${r.ingresoSugerido}</span>`:``)),
     r.atencion ? fieldRow("Fecha de atención", r.atencion) : "",
     fieldRow("Inconsistencia de fecha", r.incTexto ? `<span class="pill ${r.incOk?'good':'critical'}">${esc(r.incTexto)}</span>` : `<span class="muted">—</span>`),
+    r.detalle ? fieldRow("Detalle de la solicitud", `<span style="white-space:pre-wrap;">${esc(r.detalle)}</span>`) : "",
   ].join("");
 
   recordFoot.textContent = `Hoja ${SHEET_NAME[mod]}, fila ${r.fila} en el archivo fuente.`;

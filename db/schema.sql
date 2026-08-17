@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS master_records (
   todo_mayusculas  BOOLEAN,
   doble_espacio    BOOLEAN,
   falta_tilde      BOOLEAN,
+  detalle          TEXT,                    -- texto completo de "Detalle su solicitud" (hoy solo en Otras Solicitudes)
+  motivo_detalle   TEXT,                    -- motivo(s) detectado(s) en ese texto, separados por coma (ej: "receta,reembolso")
   UNIQUE(module_id, fila)
 );
 
@@ -45,6 +47,8 @@ ALTER TABLE master_records ADD COLUMN IF NOT EXISTS calidad_texto TEXT;
 ALTER TABLE master_records ADD COLUMN IF NOT EXISTS todo_mayusculas BOOLEAN;
 ALTER TABLE master_records ADD COLUMN IF NOT EXISTS doble_espacio BOOLEAN;
 ALTER TABLE master_records ADD COLUMN IF NOT EXISTS falta_tilde BOOLEAN;
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS detalle TEXT;
+ALTER TABLE master_records ADD COLUMN IF NOT EXISTS motivo_detalle TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_master_module ON master_records(module_id);
 CREATE INDEX IF NOT EXISTS idx_master_rut_estado ON master_records(rut_estado);

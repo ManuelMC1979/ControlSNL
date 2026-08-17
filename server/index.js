@@ -57,7 +57,8 @@ app.get("/api/dashboard-data", async (req, res) => {
         `SELECT module_id, fila, nombre, rut, rut_estado, rut_sugerencia, correo, servicio,
                 paciente, ejecutivo, estado_bo, responsable_bo, ingreso, ingreso_sugerido, atencion,
                 atencion_sugerida, inc_texto, inc_ok, sla_estado, dias, sec_estado, es_prueba,
-                estado_gestion, repeticiones_rut, calidad_texto, todo_mayusculas, doble_espacio, falta_tilde
+                estado_gestion, repeticiones_rut, calidad_texto, todo_mayusculas, doble_espacio, falta_tilde,
+                detalle, motivo_detalle
          FROM master_records ORDER BY module_id, fila`
       ),
     ]);
@@ -94,6 +95,8 @@ app.get("/api/dashboard-data", async (req, res) => {
         todoMayusculas: row.todo_mayusculas,
         dobleEspacio: row.doble_espacio,
         faltaTilde: row.falta_tilde,
+        detalle: row.detalle,
+        motivoDetalle: row.motivo_detalle,
       });
     }
 
