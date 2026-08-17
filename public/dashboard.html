@@ -638,6 +638,19 @@ function renderRutTab(){
 }
 
 const MES_NOMBRE = {1:"enero",2:"febrero",3:"marzo",4:"abril",5:"mayo",6:"junio",7:"julio",8:"agosto",9:"septiembre",10:"octubre",11:"noviembre",12:"diciembre"};
+const MES_CORTO = {1:"Ene",2:"Feb",3:"Mar",4:"Abr",5:"May",6:"Jun",7:"Jul",8:"Ago",9:"Sep",10:"Oct",11:"Nov",12:"Dic"};
+function mesKeyOf(r){
+  if(!r.ingreso) return null;
+  const p = r.ingreso.split("-");
+  if(p.length !== 3) return null;
+  const mes = Number(p[1]);
+  if(!mes || mes<1 || mes>12) return null;
+  return p[2] + "-" + String(mes).padStart(2,"0");
+}
+function mesKeyLabel(key){
+  const [anio, mes] = key.split("-");
+  return `${MES_CORTO[Number(mes)]} ${anio}`;
+}
 
 function renderAgosto(){
   const mesLabel = MES_NOMBRE[REPORT_MES];
@@ -757,6 +770,18 @@ function renderJefatura(){
     return {m, total: rows.length, top};
   });
 
+  const mesCounts = {};
+  allRows.forEach(r=>{ const k = mesKeyOf(r); if(k) mesCounts[k] = (mesCounts[k]||0)+1; });
+  const mesList = Object.entries(mesCounts).sort((a,b)=> a[0].localeCompare(b[0]));
+  const maxMes = mesList.length ? Math.max(...mesList.map(([,c])=>c)) : 1;
+  const picoMes = mesList.length ? mesList.reduce((a,b)=> b[1]>a[1]?b:a) : ["—",0];
+
+  const catGestion = catList.map(([cat,c])=>{
+    const rows = allRows.filter(r=>((r.servicio||"").trim()||"(sin categoría)")===cat);
+    const sinGestion = rows.filter(r=>r.estadoGestion && /SIN/i.test(r.estadoGestion)).length;
+    return {cat, total:c, sinGestion, pctSin: c ? (100*sinGestion/c) : 0};
+  }).filter(x=>x.sinGestion>0).sort((a,b)=> b.pctSin - a.pctSin);
+
   return `
   <div class="lede">Vista pensada para jefatura: agrupa todas las solicitudes de las 5 áreas por <b>categoría o motivo de la solicitud</b> y por <b>canal de ingreso</b>, para ver de un vistazo qué está llegando más y dónde conviene reforzar el flujo. Los errores de RUT y la calidad de la redacción se siguen viendo en cada módulo y en "Auditoría de RUT" — esta vista es solo para lectura rápida de volumen.</div>
 
@@ -797,7 +822,39 @@ function renderJefatura(){
     </table>
   </div>
 
+  <div class="section-title">Tendencia mensual <span class="n">— volumen total de solicitudes por mes de ingreso, las 5 áreas juntas · pico: ${mesKeyLabel(picoMes[0])} con ${picoMes[1]}</span></div>
+  <div class="card" style="overflow-x:auto;">
+    ${mesList.map(([key,c])=>`
+      <div class="issue-row clickable" data-kind="master" data-mod="" data-filter="mes" data-cat="${key}" data-title="${mesKeyLabel(key)} — todos los módulos">
+        <div class="name">${mesKeyLabel(key)}</div>
+        <div class="track"><div class="fill" style="width:${Math.max(2,(c/maxMes*100)).toFixed(1)}%;background:var(--accent)"></div></div>
+        <div class="count tabular">${c}</div>
+        <div class="pill good">${pct(c,total)}%</div>
+      </div>
+    `).join("")}
+  </div>
+
+  <div class="section-title">Sin gestión por categoría <span class="n">— dónde se está acumulando más trabajo pendiente</span></div>
+  <div class="card pad">
+    ${catGestion.length ? `
+    <table class="rutdef">
+      <thead><tr><th>Categoría</th><th>Solicitudes</th><th>Sin gestión</th><th>% sin gestión</th></tr></thead>
+      <tbody>
+        ${catGestion.map(({cat,total:t,sinGestion,pctSin})=>`
+          <tr class="clickable" data-kind="master" data-mod="" data-filter="categoriaSinGestion" data-cat="${esc(cat)}" data-title="Sin gestión — ${esc(cat)}">
+            <td>${esc(cat)}</td>
+            <td class="mono">${t}</td>
+            <td class="mono" style="color:var(--critical-ink);font-weight:700;">${sinGestion}</td>
+            <td class="mono">${pctSin.toFixed(1)}%</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    ` : `<div style="padding:4px 2px;color:var(--ink-3);font-size:13px;">Ninguna categoría tiene solicitudes sin gestión registrada.</div>`}
+  </div>
+
   <div class="section-title">Canal de ingreso <span class="n">— quién hace la solicitud, clic para ver el detalle</span></div>
+
   <div class="card">
     ${canalList.map(([canal,c])=>`
       <div class="issue-row clickable" data-kind="master" data-mod="" data-filter="canal" data-cat="${esc(canal)}" data-title="${esc(canal)} — todos los módulos">
@@ -951,10 +1008,11 @@ function rowMeta(filterKey, r){
   if(filterKey==="agostoCalidadBuena") return {text:"Buena", sev:"good"};
   if(filterKey==="agostoCalidadRegular") return {text:"Regular"+[r.todoMayusculas&&" · mayúsculas",r.dobleEspacio&&" · doble espacio",r.faltaTilde&&" · sin tilde"].filter(Boolean).join(""), sev:"warning"};
   if(filterKey==="agostoCalidadDeficiente") return {text:"Deficiente (detalle muy corto o vacío)", sev:"critical"};
-  if(filterKey==="categoria" || filterKey==="canal"){
+  if(filterKey==="categoria" || filterKey==="canal" || filterKey==="mes"){
     const sinGestion = r.estadoGestion && /SIN/i.test(r.estadoGestion);
     return {text: r.estadoGestion || "Sin dato de gestión", sev: sinGestion ? "critical" : "good"};
   }
+  if(filterKey==="categoriaSinGestion") return {text: r.estadoGestion || "Sin gestión", sev:"critical"};
   // total / sinError / conError
   return {text: r.incTexto || "—", sev: r.incOk ? "good" : "critical"};
 }
@@ -965,6 +1023,10 @@ function openMasterList(mod, filterKey, title, extra){
     pred = r => ((r.servicio||"").trim() || "(sin categoría)") === extra;
   } else if(filterKey === "canal"){
     pred = r => ((r.paciente||"").trim() || "(sin dato)") === extra;
+  } else if(filterKey === "mes"){
+    pred = r => mesKeyOf(r) === extra;
+  } else if(filterKey === "categoriaSinGestion"){
+    pred = r => ((r.servicio||"").trim() || "(sin categoría)") === extra && r.estadoGestion && /SIN/i.test(r.estadoGestion);
   } else {
     pred = MASTER_FILTERS[filterKey] || (()=>true);
   }
