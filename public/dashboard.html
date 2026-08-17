@@ -638,19 +638,6 @@ function renderRutTab(){
 }
 
 const MES_NOMBRE = {1:"enero",2:"febrero",3:"marzo",4:"abril",5:"mayo",6:"junio",7:"julio",8:"agosto",9:"septiembre",10:"octubre",11:"noviembre",12:"diciembre"};
-const MES_CORTO = {1:"Ene",2:"Feb",3:"Mar",4:"Abr",5:"May",6:"Jun",7:"Jul",8:"Ago",9:"Sep",10:"Oct",11:"Nov",12:"Dic"};
-function mesKeyOf(r){
-  if(!r.ingreso) return null;
-  const p = r.ingreso.split("-");
-  if(p.length !== 3) return null;
-  const mes = Number(p[1]);
-  if(!mes || mes<1 || mes>12) return null;
-  return p[2] + "-" + String(mes).padStart(2,"0");
-}
-function mesKeyLabel(key){
-  const [anio, mes] = key.split("-");
-  return `${MES_CORTO[Number(mes)]} ${anio}`;
-}
 
 function renderAgosto(){
   const mesLabel = MES_NOMBRE[REPORT_MES];
@@ -770,12 +757,6 @@ function renderJefatura(){
     return {m, total: rows.length, top};
   });
 
-  const mesCounts = {};
-  allRows.forEach(r=>{ const k = mesKeyOf(r); if(k) mesCounts[k] = (mesCounts[k]||0)+1; });
-  const mesList = Object.entries(mesCounts).sort((a,b)=> a[0].localeCompare(b[0]));
-  const maxMes = mesList.length ? Math.max(...mesList.map(([,c])=>c)) : 1;
-  const picoMes = mesList.length ? mesList.reduce((a,b)=> b[1]>a[1]?b:a) : ["—",0];
-
   const catGestion = catList.map(([cat,c])=>{
     const rows = allRows.filter(r=>((r.servicio||"").trim()||"(sin categoría)")===cat);
     const sinGestion = rows.filter(r=>r.estadoGestion && /SIN/i.test(r.estadoGestion)).length;
@@ -820,18 +801,6 @@ function renderJefatura(){
         }).join("")}
       </tbody>
     </table>
-  </div>
-
-  <div class="section-title">Tendencia mensual <span class="n">— volumen total de solicitudes por mes de ingreso, las 5 áreas juntas · pico: ${mesKeyLabel(picoMes[0])} con ${picoMes[1]}</span></div>
-  <div class="card" style="overflow-x:auto;">
-    ${mesList.map(([key,c])=>`
-      <div class="issue-row clickable" data-kind="master" data-mod="" data-filter="mes" data-cat="${key}" data-title="${mesKeyLabel(key)} — todos los módulos">
-        <div class="name">${mesKeyLabel(key)}</div>
-        <div class="track"><div class="fill" style="width:${Math.max(2,(c/maxMes*100)).toFixed(1)}%;background:var(--accent)"></div></div>
-        <div class="count tabular">${c}</div>
-        <div class="pill good">${pct(c,total)}%</div>
-      </div>
-    `).join("")}
   </div>
 
   <div class="section-title">Sin gestión por categoría <span class="n">— dónde se está acumulando más trabajo pendiente</span></div>
@@ -1008,7 +977,7 @@ function rowMeta(filterKey, r){
   if(filterKey==="agostoCalidadBuena") return {text:"Buena", sev:"good"};
   if(filterKey==="agostoCalidadRegular") return {text:"Regular"+[r.todoMayusculas&&" · mayúsculas",r.dobleEspacio&&" · doble espacio",r.faltaTilde&&" · sin tilde"].filter(Boolean).join(""), sev:"warning"};
   if(filterKey==="agostoCalidadDeficiente") return {text:"Deficiente (detalle muy corto o vacío)", sev:"critical"};
-  if(filterKey==="categoria" || filterKey==="canal" || filterKey==="mes"){
+  if(filterKey==="categoria" || filterKey==="canal"){
     const sinGestion = r.estadoGestion && /SIN/i.test(r.estadoGestion);
     return {text: r.estadoGestion || "Sin dato de gestión", sev: sinGestion ? "critical" : "good"};
   }
@@ -1023,8 +992,6 @@ function openMasterList(mod, filterKey, title, extra){
     pred = r => ((r.servicio||"").trim() || "(sin categoría)") === extra;
   } else if(filterKey === "canal"){
     pred = r => ((r.paciente||"").trim() || "(sin dato)") === extra;
-  } else if(filterKey === "mes"){
-    pred = r => mesKeyOf(r) === extra;
   } else if(filterKey === "categoriaSinGestion"){
     pred = r => ((r.servicio||"").trim() || "(sin categoría)") === extra && r.estadoGestion && /SIN/i.test(r.estadoGestion);
   } else {
