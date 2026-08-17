@@ -787,7 +787,9 @@ function renderJefatura(){
   }).filter(x=>x.sinGestion>0).sort((a,b)=> b.pctSin - a.pctSin);
 
   const otrasRowsTodas = MASTER_DATA["otras"] || [];
-  const otrasRows = OTRAS_MOTIVO_MES ? otrasRowsTodas.filter(r=>esDelMes(r, OTRAS_MOTIVO_MES, ANIO_ACTUAL)) : otrasRowsTodas;
+  const otrasRows = otrasRowsTodas.filter(r => OTRAS_MOTIVO_MES
+    ? esDelMes(r, OTRAS_MOTIVO_MES, ANIO_ACTUAL)
+    : MESES_OTRAS.some(mes => esDelMes(r, mes, ANIO_ACTUAL)));
   const otrasConDetalle = otrasRows.filter(r=>r.motivoDetalle);
   const otrasSinDetalle = otrasRows.length - otrasConDetalle.length;
   const otrasDeficiente = otrasRows.filter(r=>r.calidadTexto==="Deficiente").length;
@@ -858,7 +860,7 @@ function renderJefatura(){
   <div class="section-title">Otras Solicitudes: qué están pidiendo <span class="n">— según el texto de "Detalle su solicitud", clic para ver los casos</span></div>
   <div class="lede" style="margin-top:-10px; margin-bottom:14px;">Clasificación automática por palabras clave del texto que escribió cada persona en esa pestaña. Una solicitud puede mencionar más de un motivo a la vez, por eso los porcentajes no suman 100%. Sirve para ver qué se está pidiendo más y si el campo se está llenando con información útil para gestionar el caso.</div>
   <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
-    <button class="mes-pill ${!OTRAS_MOTIVO_MES?'active':''}" data-otras-mes-pill="">Todos los meses</button>
+    <button class="mes-pill ${!OTRAS_MOTIVO_MES?'active':''}" data-otras-mes-pill="">Mayo + Junio + Julio</button>
     ${MESES_OTRAS.map(mes=>`
       <button class="mes-pill ${mes===OTRAS_MOTIVO_MES?'active':''}" data-otras-mes-pill="${mes}">
         ${MES_NOMBRE[mes][0].toUpperCase()+MES_NOMBRE[mes].slice(1)}
@@ -1054,7 +1056,9 @@ function openMasterList(mod, filterKey, title, extra){
   } else if(filterKey === "categoriaSinGestion"){
     pred = r => ((r.servicio||"").trim() || "(sin categoría)") === extra && r.estadoGestion && /SIN/i.test(r.estadoGestion);
   } else if(filterKey === "motivoOtras"){
-    pred = r => (r.motivoDetalle||"").split(",").includes(extra) && (!OTRAS_MOTIVO_MES || esDelMes(r, OTRAS_MOTIVO_MES, ANIO_ACTUAL));
+    pred = r => (r.motivoDetalle||"").split(",").includes(extra) && (OTRAS_MOTIVO_MES
+      ? esDelMes(r, OTRAS_MOTIVO_MES, ANIO_ACTUAL)
+      : MESES_OTRAS.some(mes => esDelMes(r, mes, ANIO_ACTUAL)));
   } else {
     pred = MASTER_FILTERS[filterKey] || (()=>true);
   }
