@@ -1007,7 +1007,7 @@ function openMasterList(mod, filterKey, title, extra){
   }
   items.sort((a,b)=> a._mod===b._mod ? a.fila-b.fila : a._mod.localeCompare(b._mod));
 
-  document.getElementById("modalHead").innerHTML = `<tr>${mod?'':'<th>Módulo</th>'}<th>Fila en base</th><th>Nombre</th><th>Servicio</th><th>Fecha de ingreso</th><th>Estado</th></tr>`;
+  document.getElementById("modalHead").innerHTML = `<tr>${mod?'':'<th>Módulo</th>'}<th>Fila en base</th><th>Nombre</th><th>Servicio</th><th>Fecha respuesta formulario</th><th>Estado</th></tr>`;
   modalTitle.textContent = title || "Registros";
   modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} — haz clic en uno para ver el detalle completo, incluido el RUT.`;
   modalBody.innerHTML = items.map(r => {
@@ -1057,7 +1057,7 @@ function openRecordModal(mod, fila){
     fieldRow("Canal", r.paciente ? esc(r.paciente) : `<span class="muted">—</span>`),
     fieldRow("Ejecutivo", r.ejecutivo ? esc(r.ejecutivo) : `<span class="muted">—</span>`),
     r.estadoBO ? fieldRow("Estado de gestión", esc(r.estadoBO)) : "",
-    fieldRow("Fecha de ingreso", (r.ingreso || `<span class="muted">— sin registrar</span>`) + (r.ingresoSugerido ? ` <span style="color:var(--good-ink);font-weight:700">→ ${r.ingresoSugerido}</span>`:``)),
+    fieldRow("Fecha respuesta formulario", (r.ingreso || `<span class="muted">— sin registrar</span>`) + (r.ingresoSugerido ? ` <span style="color:var(--good-ink);font-weight:700">→ ${r.ingresoSugerido}</span>`:``)),
     r.atencion ? fieldRow("Fecha de atención", r.atencion) : "",
     fieldRow("Inconsistencia de fecha", r.incTexto ? `<span class="pill ${r.incOk?'good':'critical'}">${esc(r.incTexto)}</span>` : `<span class="muted">—</span>`),
   ].join("");
