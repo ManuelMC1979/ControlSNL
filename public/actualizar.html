@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actualizar datos — Auditoría SNL</title>
+<style>
+  :root{
+    --page:#f7f6f2; --surface:#ffffff; --ink:#16201f; --ink-2:#52625f; --ink-3:#889390;
+    --border:rgba(22,32,31,0.12); --accent:#0f6b62; --accent-soft:#e1f0ed; --accent-ink:#ffffff;
+    --critical:#d03b3b; --critical-soft:#fbe1e1; --critical-ink:#a12222;
+    --good-soft:#dff3e6; --good-ink:#1f7a45;
+    --shadow:0 1px 2px rgba(16,25,24,0.06), 0 8px 24px -12px rgba(16,25,24,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --page:#0d1211; --surface:#141b1a; --ink:#eef4f2; --ink-2:#b9c6c3; --ink-3:#7c8b87; --border:rgba(255,255,255,0.10); --accent:#3fb3a4; --accent-soft:#173430; --accent-ink:#04211d; --critical-soft:#3a1616; --critical-ink:#ff9a9a; --good-soft:#123424; --good-ink:#7fe0a8; }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--page); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    display:flex; align-items:flex-start; justify-content:center; padding:48px 16px;
+  }
+  .wrap{ width:100%; max-width:540px; }
+  .back{ display:inline-block; margin-bottom:16px; color:var(--ink-2); font-size:13px; text-decoration:none; }
+  .back:hover{ color:var(--accent); }
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:32px; }
+  .mark{ width:40px; height:40px; border-radius:10px; background:linear-gradient(155deg,#3fb3a4,#0f6b62); display:flex; align-items:center; justify-content:center; font-size:19px; margin-bottom:16px; }
+  h1{ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-size:22px; margin:0 0 6px; }
+  p.sub{ font-size:13.5px; color:var(--ink-2); margin:0 0 24px; line-height:1.55; }
+  .drop{
+    border:2px dashed var(--border); border-radius:12px; padding:28px 20px; text-align:center;
+    cursor:pointer; margin-bottom:18px; transition:border-color .15s, background .15s;
+  }
+  .drop:hover, .drop.drag{ border-color:var(--accent); background:var(--accent-soft); }
+  .drop .ic{ font-size:28px; margin-bottom:8px; }
+  .drop .fname{ font-weight:700; font-size:13.5px; margin-top:6px; color:var(--accent); word-break:break-all; }
+  input[type="file"]{ display:none; }
+  button{
+    width:100%; padding:12px; border:none; border-radius:9px; background:var(--accent); color:var(--accent-ink);
+    font-size:14px; font-weight:700; cursor:pointer;
+  }
+  button:disabled{ opacity:.5; cursor:not-allowed; }
+  button:hover:not(:disabled){ opacity:.92; }
+  .msg{ font-size:13px; font-weight:600; padding:11px 14px; border-radius:9px; margin-top:16px; line-height:1.5; }
+  .msg.error{ background:var(--critical-soft); color:var(--critical-ink); }
+  .msg.ok{ background:var(--good-soft); color:var(--good-ink); }
+  .msg ul{ margin:8px 0 0; padding-left:18px; font-weight:500; }
+  .note{ font-size:12px; color:var(--ink-3); margin-top:20px; line-height:1.6; }
+  .spinner{ display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:-2px; margin-right:8px; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/">← Volver al panel</a>
+    <div class="card">
+      <div class="mark">🔄</div>
+      <h1>Actualizar datos</h1>
+      <p class="sub">Sube la planilla Excel actualizada (el mismo archivo con las hojas "Otras solicitudes", "Reembolsos", "Cita pendiente Conf.Diag", "Paciente derivado EP", "CDPendiente_BASE" y sus hojas de auditoría). El panel se actualiza solo — reemplaza todos los datos en unos segundos, sin que tengas que hacer nada más.</p>
+
+      <label class="drop" id="drop">
+        <div class="ic">📄</div>
+        <div id="dropText">Haz clic aquí o arrastra el archivo .xlsx</div>
+        <div class="fname" id="fname"></div>
+        <input type="file" id="file" accept=".xlsx,.xls">
+      </label>
+
+      <button id="submitBtn" disabled>Actualizar panel</button>
+      <div id="result"></div>
+
+      <p class="note">Esto reemplaza por completo los datos actuales del panel (las 5 pestañas) con lo que traiga el archivo que subas — no se pueden combinar datos de dos archivos distintos. Si algo sale mal, el panel se queda con los datos anteriores (no se borra nada hasta que la carga termine correctamente).</p>
+    </div>
+  </div>
+
+  <script>
+    const drop = document.getElementById("drop");
+    const fileInput = document.getElementById("file");
+    const fnameEl = document.getElementById("fname");
+    const dropText = document.getElementById("dropText");
+    const submitBtn = document.getElementById("submitBtn");
+    const result = document.getElementById("result");
+    let selectedFile = null;
+
+    function setFile(f){
+      selectedFile = f;
+      if (f) {
+        fnameEl.textContent = f.name;
+        dropText.textContent = "Archivo listo:";
+        submitBtn.disabled = false;
+      } else {
+        fnameEl.textContent = "";
+        dropText.textContent = "Haz clic aquí o arrastra el archivo .xlsx";
+        submitBtn.disabled = true;
+      }
+    }
+
+    fileInput.addEventListener("change", () => setFile(fileInput.files[0] || null));
+    drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("drag"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+    drop.addEventListener("drop", e => {
+      e.preventDefault();
+      drop.classList.remove("drag");
+      if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+    });
+
+    const MOD_LABEL = {reembolsos:"Reembolsos", informes:"Informes Médicos", otras:"Otras Solicitudes", cd:"CD Pendiente", pacienteep:"Paciente Derivado EP"};
+
+    submitBtn.addEventListener("click", async () => {
+      if (!selectedFile) return;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="spinner"></span>Actualizando…`;
+      result.innerHTML = "";
+
+      const form = new FormData();
+      form.append("excel", selectedFile);
+
+      try {
+        const res = await fetch("/api/actualizar-excel", { method: "POST", body: form, credentials: "same-origin" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Error HTTP ${res.status}`);
+
+        const detalle = Object.entries(data.porModulo || {}).map(([k, v]) => `<li>${MOD_LABEL[k] || k}: ${v}</li>`).join("");
+        result.innerHTML = `<div class="msg ok">✅ Listo — se cargaron ${data.total} solicitudes en total.<ul>${detalle}</ul></div>`;
+      } catch (err) {
+        result.innerHTML = `<div class="msg error">${err.message}</div>`;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Actualizar panel";
+      }
+    });
+  </script>
+</body>
+</html>

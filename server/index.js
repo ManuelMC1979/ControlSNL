@@ -2,8 +2,15 @@ require("dotenv").config();
 const path = require("path");
 const express = require("express");
 const session = require("express-session");
+const multer = require("multer");
 const { pool } = require("./db");
 const { requireAuth, login, logout } = require("./auth");
+const { procesarWorkbook } = require("./importExcel");
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +50,10 @@ app.get("/", (req, res) => {
 
 app.get("/manual", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "manual.html"));
+});
+
+app.get("/actualizar", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "actualizar.html"));
 });
 
 app.use(express.static(path.join(__dirname, "..", "public")));
@@ -122,6 +133,80 @@ app.get("/api/dashboard-data", async (req, res) => {
     console.error("Error /api/dashboard-data:", err);
     res.status(500).json({ error: "No se pudo leer la base de datos." });
   }
+});
+
+// ---------- Actualizar datos: sube el Excel y reemplaza todo en Neon ----------
+app.post("/api/actualizar-excel", upload.single("excel"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No se recibió ningún archivo." });
+  }
+
+  let datos;
+  try {
+    datos = procesarWorkbook(req.file.buffer);
+  } catch (err) {
+    console.error("Error leyendo el Excel:", err);
+    return res.status(400).json({ error: `No se pudo leer el archivo: ${err.message}` });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("TRUNCATE master_records, modules_meta, causas RESTART IDENTITY");
+
+    for (const m of datos.modulesMeta) {
+      await client.query(
+        `INSERT INTO modules_meta (id, nombre, icon, descripcion, gestion, observacion, sla_dias, issues)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        [m.id, m.nombre, m.icon, m.descripcion, m.gestion, m.observacion, m.id === "reembolsos" ? 14 : 10, JSON.stringify(m.issues || [])]
+      );
+    }
+
+    let ordenCausa = 0;
+    for (const c of datos.causas) {
+      await client.query(`INSERT INTO causas (sev, h, p, s, orden) VALUES ($1,$2,$3,$4,$5)`, [c.sev, c.h, c.p, c.s, ordenCausa++]);
+    }
+
+    let total = 0;
+    for (const [moduleId, rows] of Object.entries(datos.master)) {
+      for (const r of rows) {
+        await client.query(
+          `INSERT INTO master_records
+            (module_id, fila, nombre, rut, rut_estado, rut_sugerencia, correo, servicio, paciente,
+             ejecutivo, estado_bo, responsable_bo, ingreso, ingreso_sugerido, atencion, atencion_sugerida,
+             inc_texto, inc_ok, sla_estado, dias, sec_estado, es_prueba, estado_gestion,
+             repeticiones_rut, calidad_texto, todo_mayusculas, doble_espacio, falta_tilde, detalle, motivo_detalle)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30)
+           ON CONFLICT (module_id, fila) DO NOTHING`,
+          [
+            moduleId, r.fila, r.nombre, r.rut, r.rutEstado, r.rutSugerencia, r.correo, r.servicio,
+            r.paciente, r.ejecutivo, r.estadoBO, r.responsableBO, r.ingreso, r.ingresoSugerido, r.atencion,
+            r.atencionSugerida, r.incTexto, r.incOk, null, null, null, r.esPrueba,
+            r.estadoGestion, r.repeticionesRut, r.calidadTexto, r.todoMayusculas, r.dobleEspacio, r.faltaTilde,
+            r.detalle, r.motivoDetalle,
+          ]
+        );
+        total++;
+      }
+    }
+
+    await client.query("COMMIT");
+    res.json({ ok: true, total, porModulo: Object.fromEntries(Object.entries(datos.master).map(([k, v]) => [k, v.length])) });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error actualizando la base de datos:", err);
+    res.status(500).json({ error: "Se leyó el archivo pero no se pudo guardar en la base de datos." });
+  } finally {
+    client.release();
+  }
+});
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError || err) {
+    console.error("Error subiendo archivo:", err.message);
+    return res.status(400).json({ error: `No se pudo procesar el archivo: ${err.message}` });
+  }
+  next();
 });
 
 app.listen(PORT, () => {
