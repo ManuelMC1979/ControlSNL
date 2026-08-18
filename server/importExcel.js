@@ -113,7 +113,7 @@ function truthy(v) {
 }
 
 function leerAuditoria(wb, sheetName, cols) {
-  const ws = wb.Sheets[sheetName];
+  const ws = buscarHoja(wb, sheetName);
   if (!ws) return new Map();
   const rows = XLSX.utils.sheet_to_json(ws, { header: 1, range: 1, defval: null });
   const map = new Map();
@@ -125,9 +125,20 @@ function leerAuditoria(wb, sheetName, cols) {
   return map;
 }
 
+function buscarHoja(wb, nombres) {
+  const candidatos = Array.isArray(nombres) ? nombres : [nombres];
+  for (const n of candidatos) {
+    if (wb.Sheets[n]) return wb.Sheets[n];
+  }
+  return null;
+}
+
 function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols }) {
-  const wsRaw = wb.Sheets[rawSheet];
-  if (!wsRaw) throw new Error(`No se encontró la hoja "${rawSheet}" en el archivo.`);
+  const wsRaw = buscarHoja(wb, rawSheet);
+  if (!wsRaw) {
+    const nombres = Array.isArray(rawSheet) ? rawSheet.join('" o "') : rawSheet;
+    throw new Error(`No se encontró la hoja "${nombres}" en el archivo.`);
+  }
   const rawRows = XLSX.utils.sheet_to_json(wsRaw, { header: 1, range: 1, defval: null });
   const audit = leerAuditoria(wb, auditSheet, auditCols);
 
@@ -275,7 +286,7 @@ const MODULOS = [
     nombre: "Informes Médicos",
     icon: "📄",
     descripcion: "Solicitudes de informes, certificados y licencias médicas.",
-    rawSheet: "CDPendiente_BASE",
+    rawSheet: ["INFORMES MEDICOS", "Informes Medicos", "CDPendiente_BASE"],
     rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 8, rut: 9, correo: 10, atencion: 14, detalle: 15 },
     auditSheet: "Auditoria_InformeMedico",
     auditCols: { fila: 15, ejecutivo: 19, detalle: 20, estadoGestion: 22, allcaps: 30, corto: 31, dobleEsp: 32, faltaTilde: 33, calidadAuto: 34 },
