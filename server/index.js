@@ -201,12 +201,18 @@ app.post("/api/actualizar-excel", upload.single("excel"), async (req, res) => {
       }
     }
 
-    await client.query(
-      `INSERT INTO app_meta (key, updated_at) VALUES ('last_upload', now())
-       ON CONFLICT (key) DO UPDATE SET updated_at = now()`
-    );
-
     await client.query("COMMIT");
+
+    // No crítico: si la tabla app_meta todavía no existe en esta base (falta correr
+    // el schema.sql más reciente), no debe hacer fallar la actualización de datos.
+    try {
+      await client.query(
+        `INSERT INTO app_meta (key, updated_at) VALUES ('last_upload', now())
+         ON CONFLICT (key) DO UPDATE SET updated_at = now()`
+      );
+    } catch (metaErr) {
+      console.error("No se pudo registrar la fecha de actualización (app_meta):", metaErr.message);
+    }
     res.json({ ok: true, total, porModulo: Object.fromEntries(Object.entries(datos.master).map(([k, v]) => [k, v.length])) });
   } catch (err) {
     await client.query("ROLLBACK");
