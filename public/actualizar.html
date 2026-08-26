@@ -58,6 +58,7 @@
       <div class="mark">🔄</div>
       <h1>Actualizar datos</h1>
       <p class="sub">Sube la planilla Excel actualizada (el mismo archivo con las hojas "Otras solicitudes", "Reembolsos", "Cita pendiente Conf.Diag", "Paciente derivado EP", "INFORMES MEDICOS" y sus hojas de auditoría). El panel se actualiza solo — reemplaza todos los datos en unos segundos, sin que tengas que hacer nada más.</p>
+      <p class="sub" id="lastUpdated" style="margin-top:-14px;">Consultando última actualización…</p>
 
       <label class="drop" id="drop">
         <div class="ic">📄</div>
@@ -74,6 +75,23 @@
   </div>
 
   <script>
+    (async () => {
+      try {
+        const res = await fetch("/api/ultima-actualizacion", { credentials: "same-origin" });
+        const data = await res.json();
+        const el = document.getElementById("lastUpdated");
+        if (data.lastUpdatedAt) {
+          const d = new Date(data.lastUpdatedAt);
+          const texto = d.toLocaleString("es-CL", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+          el.textContent = `Última actualización: ${texto}`;
+        } else {
+          el.textContent = "Última actualización: sin registrar";
+        }
+      } catch (err) {
+        document.getElementById("lastUpdated").textContent = "";
+      }
+    })();
+
     const drop = document.getElementById("drop");
     const fileInput = document.getElementById("file");
     const fnameEl = document.getElementById("fname");

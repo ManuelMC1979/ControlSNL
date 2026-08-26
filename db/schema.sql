@@ -75,3 +75,9 @@ CREATE TABLE IF NOT EXISTS causas (
   s   TEXT NOT NULL,    -- solución propuesta
   orden INTEGER NOT NULL DEFAULT 0
 );
+
+-- Metadatos simples de la app (por ahora solo la fecha de la última actualización de datos).
+CREATE TABLE IF NOT EXISTS app_meta (
+  key        TEXT PRIMARY KEY,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

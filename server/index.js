@@ -61,7 +61,7 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 // ---------- API: datos del panel, leídos desde Neon ----------
 app.get("/api/dashboard-data", async (req, res) => {
   try {
-    const [modulesRes, causasRes, masterRes] = await Promise.all([
+    const [modulesRes, causasRes, masterRes, metaRes] = await Promise.all([
       pool.query("SELECT * FROM modules_meta ORDER BY id"),
       pool.query("SELECT sev, h, p, s FROM causas ORDER BY orden"),
       pool.query(
@@ -72,6 +72,7 @@ app.get("/api/dashboard-data", async (req, res) => {
                 detalle, motivo_detalle
          FROM master_records ORDER BY module_id, fila`
       ),
+      pool.query("SELECT updated_at FROM app_meta WHERE key = 'last_upload'").catch(() => ({ rows: [] })),
     ]);
 
     const master = {};
@@ -128,10 +129,20 @@ app.get("/api/dashboard-data", async (req, res) => {
       master,
       excelShareLink: process.env.EXCEL_SHARE_LINK || "",
       referenceDate: process.env.REFERENCE_DATE || "13-08-2026",
+      lastUpdatedAt: metaRes.rows[0] ? metaRes.rows[0].updated_at : null,
     });
   } catch (err) {
     console.error("Error /api/dashboard-data:", err);
     res.status(500).json({ error: "No se pudo leer la base de datos." });
+  }
+});
+
+app.get("/api/ultima-actualizacion", async (req, res) => {
+  try {
+    const r = await pool.query("SELECT updated_at FROM app_meta WHERE key = 'last_upload'").catch(() => ({ rows: [] }));
+    res.json({ lastUpdatedAt: r.rows[0] ? r.rows[0].updated_at : null });
+  } catch (err) {
+    res.json({ lastUpdatedAt: null });
   }
 });
 
@@ -189,6 +200,11 @@ app.post("/api/actualizar-excel", upload.single("excel"), async (req, res) => {
         total++;
       }
     }
+
+    await client.query(
+      `INSERT INTO app_meta (key, updated_at) VALUES ('last_upload', now())
+       ON CONFLICT (key) DO UPDATE SET updated_at = now()`
+    );
 
     await client.query("COMMIT");
     res.json({ ok: true, total, porModulo: Object.fromEntries(Object.entries(datos.master).map(([k, v]) => [k, v.length])) });
