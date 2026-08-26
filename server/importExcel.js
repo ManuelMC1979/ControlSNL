@@ -10,6 +10,7 @@
 
 const XLSX = require("xlsx");
 const { analizarRut } = require("./rutUtils");
+const { diasHabilesEntre } = require("./chileCalendar");
 
 const REFERENCE_DATE = new Date(2026, 7, 15); // 15-08-2026, misma fecha que usa el panel
 
@@ -133,7 +134,7 @@ function buscarHoja(wb, nombres) {
   return null;
 }
 
-function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols }) {
+function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols, slaDias }) {
   const wsRaw = buscarHoja(wb, rawSheet);
   if (!wsRaw) {
     const nombres = Array.isArray(rawSheet) ? rawSheet.join('" o "') : rawSheet;
@@ -201,9 +202,21 @@ function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols
   });
 
   const otrasSlug = moduleId === "otras";
+  const hoy = new Date();
   const rows = parsedRows.map((r) => {
     const rutEstado = r.rutInfo.estado;
     const repeticionesRut = rutEstado === "valido" ? rutCount.get(r.rutInfo.numero) || 1 : null;
+
+    const ingresoDate = parseDMY(r.ingreso);
+    let slaEstado = "sin_fecha";
+    let dias = null;
+    if (ingresoDate && ingresoDate <= hoy) {
+      dias = diasHabilesEntre(ingresoDate, hoy);
+      slaEstado = dias > slaDias ? "fuera" : "dentro";
+    } else if (ingresoDate) {
+      slaEstado = "invalido"; // fecha de ingreso futura: no se puede medir plazo todavía
+    }
+
     return {
       fila: r.fila,
       nombre: r.nombre,
@@ -222,8 +235,8 @@ function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols
       atencionSugerida: r.atencionSugerida,
       incTexto: r.incTexto,
       incOk: r.incOk,
-      slaEstado: null,
-      dias: null,
+      slaEstado,
+      dias,
       secEstado: null,
       esPrueba: esPrueba(r.nombre, r.rutInfo.numero, r.detalle),
       estadoGestion: r.estadoGestion,
@@ -246,6 +259,7 @@ const MODULOS = [
     nombre: "Otras Solicitudes",
     icon: "🗂️",
     descripcion: "Recetas, órdenes médicas, certificados y otras solicitudes generales.",
+    slaDias: 10,
     rawSheet: "Otras solicitudes",
     rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9 },
     auditSheet: "Auditoria_OtrasSolicitudes",
@@ -256,6 +270,7 @@ const MODULOS = [
     nombre: "CD Pendiente",
     icon: "🏥",
     descripcion: "Confirmaciones diagnósticas pendientes de agendamiento o respuesta.",
+    slaDias: 10,
     rawSheet: "Cita pendiente Conf.Diag",
     rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9 },
     auditSheet: "Auditoria_CitasPendientes",
@@ -266,6 +281,7 @@ const MODULOS = [
     nombre: "Paciente Derivado EP",
     icon: "🧑‍⚕️",
     descripcion: "Pacientes derivados a Evaluación Preventiva (EP) desde otros servicios.",
+    slaDias: 10,
     rawSheet: "Paciente derivado EP",
     rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9 },
     auditSheet: "Auditoria_PacienteEP",
@@ -276,6 +292,7 @@ const MODULOS = [
     nombre: "Reembolsos",
     icon: "💳",
     descripcion: "Solicitudes de reembolso de gastos médicos particulares.",
+    slaDias: 14,
     rawSheet: "Reembolsos",
     rawCols: { canal: 1, servicio: 3, nombre: 4, rut: 5, correo: 6, ingreso: 7, estadoBO: 19, responsableBO: 20 },
     auditSheet: "Auditoria_Reembolsos",
@@ -286,6 +303,7 @@ const MODULOS = [
     nombre: "Informes Médicos",
     icon: "📄",
     descripcion: "Solicitudes de informes, certificados y licencias médicas.",
+    slaDias: 10,
     rawSheet: ["INFORMES MEDICOS", "Informes Medicos", "CDPendiente_BASE"],
     rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 8, rut: 9, correo: 10, atencion: 14, detalle: 15 },
     auditSheet: "Auditoria_InformeMedico",

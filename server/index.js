@@ -192,7 +192,7 @@ app.post("/api/actualizar-excel", upload.single("excel"), async (req, res) => {
           [
             moduleId, r.fila, r.nombre, r.rut, r.rutEstado, r.rutSugerencia, r.correo, r.servicio,
             r.paciente, r.ejecutivo, r.estadoBO, r.responsableBO, r.ingreso, r.ingresoSugerido, r.atencion,
-            r.atencionSugerida, r.incTexto, r.incOk, null, null, null, r.esPrueba,
+            r.atencionSugerida, r.incTexto, r.incOk, r.slaEstado, r.dias, null, r.esPrueba,
             r.estadoGestion, r.repeticionesRut, r.calidadTexto, r.todoMayusculas, r.dobleEspacio, r.faltaTilde,
             r.detalle, r.motivoDetalle,
           ]

@@ -1,142 +1,97 @@
 [
- {
-  "id": "reembolsos",
-  "nombre": "Reembolsos",
-  "icon": "💳",
-  "descripcion": "Solicitudes de reembolso de gastos médicos particulares.",
-  "gestion": "90.6% de los casos tiene gestión registrada — 3 sin gestión.",
-  "observacion": "1 RUT se repite dentro de este módulo (posible duplicado).",
-  "total": 32,
-  "sinError": 21,
-  "conError": 11,
-  "rut": {
-   "valido": 32,
-   "vacio": 0,
-   "formato": 0,
-   "dv": 0
+  {
+    "id": "otras",
+    "nombre": "Otras Solicitudes",
+    "icon": "🗂️",
+    "descripcion": "Recetas, órdenes médicas, certificados y otras solicitudes generales.",
+    "gestion": "54.6% de los casos tiene gestión registrada — 486 sin gestión.",
+    "observacion": "108 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+    "issues": [
+      {
+        "t": "Atención posterior al ingreso",
+        "c": 156,
+        "sev": "critical"
+      },
+      {
+        "t": "Fecha de ingreso futura",
+        "c": 114,
+        "sev": "serious"
+      }
+    ]
   },
-  "issues": [
-   {
-    "t": "Fecha de ingreso futura",
-    "c": 11,
-    "sev": "serious"
-   }
-  ]
- },
- {
-  "id": "informes",
-  "nombre": "Informes Médicos",
-  "icon": "📄",
-  "descripcion": "Solicitudes de informes, certificados y licencias médicas.",
-  "gestion": "100.0% de los casos tiene gestión registrada.",
-  "observacion": "25 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
-  "total": 191,
-  "sinError": 74,
-  "conError": 117,
-  "rut": {
-   "valido": 189,
-   "vacio": 0,
-   "formato": 2,
-   "dv": 0
+  {
+    "id": "cd",
+    "nombre": "CD Pendiente",
+    "icon": "🏥",
+    "descripcion": "Confirmaciones diagnósticas pendientes de agendamiento o respuesta.",
+    "gestion": "78.1% de los casos tiene gestión registrada — 44 sin gestión.",
+    "observacion": "19 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+    "issues": [
+      {
+        "t": "Fecha de ingreso futura",
+        "c": 71,
+        "sev": "serious"
+      },
+      {
+        "t": "Atención posterior al ingreso",
+        "c": 50,
+        "sev": "critical"
+      }
+    ]
   },
-  "issues": [
-   {
-    "t": "Atención posterior al ingreso",
-    "c": 59,
-    "sev": "critical"
-   },
-   {
-    "t": "Fecha de ingreso futura",
-    "c": 58,
-    "sev": "serious"
-   }
-  ]
- },
- {
-  "id": "otras",
-  "nombre": "Otras Solicitudes",
-  "icon": "🗂️",
-  "descripcion": "Recetas, órdenes médicas, certificados y otras solicitudes generales.",
-  "gestion": "54.6% de los casos tiene gestión registrada — 486 sin gestión.",
-  "observacion": "85 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
-  "total": 1071,
-  "sinError": 801,
-  "conError": 270,
-  "rut": {
-   "valido": 1057,
-   "vacio": 1,
-   "formato": 8,
-   "dv": 5
+  {
+    "id": "pacienteep",
+    "nombre": "Paciente Derivado EP",
+    "icon": "🧑‍⚕️",
+    "descripcion": "Pacientes derivados a Evaluación Preventiva (EP) desde otros servicios.",
+    "gestion": "100.0% de los casos tiene gestión registrada.",
+    "observacion": "No se detectaron RUT repetidos en este módulo.",
+    "issues": [
+      {
+        "t": "Fecha de ingreso futura",
+        "c": 4,
+        "sev": "serious"
+      },
+      {
+        "t": "Atención posterior al ingreso",
+        "c": 1,
+        "sev": "critical"
+      }
+    ]
   },
-  "issues": [
-   {
-    "t": "Atención posterior al ingreso",
-    "c": 156,
-    "sev": "critical"
-   },
-   {
-    "t": "Fecha de ingreso futura",
-    "c": 114,
-    "sev": "serious"
-   }
-  ]
- },
- {
-  "id": "cd",
-  "nombre": "CD Pendiente",
-  "icon": "🏥",
-  "descripcion": "Confirmaciones diagnósticas pendientes de agendamiento o respuesta.",
-  "gestion": "78.1% de los casos tiene gestión registrada — 44 sin gestión.",
-  "observacion": "14 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
-  "total": 201,
-  "sinError": 80,
-  "conError": 121,
-  "rut": {
-   "valido": 198,
-   "vacio": 0,
-   "formato": 1,
-   "dv": 2
+  {
+    "id": "reembolsos",
+    "nombre": "Reembolsos",
+    "icon": "💳",
+    "descripcion": "Solicitudes de reembolso de gastos médicos particulares.",
+    "gestion": "90.6% de los casos tiene gestión registrada — 3 sin gestión.",
+    "observacion": "1 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+    "issues": [
+      {
+        "t": "Fecha de ingreso futura",
+        "c": 11,
+        "sev": "serious"
+      }
+    ]
   },
-  "issues": [
-   {
-    "t": "Fecha de ingreso futura",
-    "c": 71,
-    "sev": "serious"
-   },
-   {
-    "t": "Atención posterior al ingreso",
-    "c": 50,
-    "sev": "critical"
-   }
-  ]
- },
- {
-  "id": "pacienteep",
-  "nombre": "Paciente Derivado EP",
-  "icon": "🧑‍⚕️",
-  "descripcion": "Pacientes derivados a Evaluación Preventiva (EP) desde otros servicios.",
-  "gestion": "100.0% de los casos tiene gestión registrada.",
-  "observacion": "No se detectaron RUT repetidos en este módulo.",
-  "total": 9,
-  "sinError": 4,
-  "conError": 5,
-  "rut": {
-   "valido": 9,
-   "vacio": 0,
-   "formato": 0,
-   "dv": 0
-  },
-  "issues": [
-   {
-    "t": "Fecha de ingreso futura",
-    "c": 4,
-    "sev": "serious"
-   },
-   {
-    "t": "Atención posterior al ingreso",
-    "c": 1,
-    "sev": "critical"
-   }
-  ]
- }
+  {
+    "id": "informes",
+    "nombre": "Informes Médicos",
+    "icon": "📄",
+    "descripcion": "Solicitudes de informes, certificados y licencias médicas.",
+    "gestion": "100.0% de los casos tiene gestión registrada.",
+    "observacion": "26 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+    "issues": [
+      {
+        "t": "Atención posterior al ingreso",
+        "c": 59,
+        "sev": "critical"
+      },
+      {
+        "t": "Fecha de ingreso futura",
+        "c": 58,
+        "sev": "serious"
+      }
+    ]
+  }
 ]

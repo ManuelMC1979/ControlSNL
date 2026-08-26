@@ -1,38 +1,38 @@
 [
- {
-  "sev": "critical",
-  "h": "533 solicitudes sin gestión registrada",
-  "p": "De las 1.504 solicitudes analizadas, 533 no tienen ninguna evidencia de que alguien las haya trabajado (sin nombre de ejecutivo, sin nota de gestión, sin respuesta). El mayor volumen está en Otras Solicitudes (486 de 1.071, un 45%) y en CD Pendiente (44 de 201, un 22%). Son pacientes que pidieron algo — una boleta, una receta, una cita — y no hay registro de que se les haya respondido.",
-  "s": "Priorizar el cierre de estos 533 casos partiendo por los más antiguos (ver “Fuera de SLA” en cada módulo). A futuro, hacer obligatorio dejar una nota de gestión antes de poder cerrar o archivar una solicitud."
- },
- {
-  "sev": "critical",
-  "h": "Atención registrada después del ingreso (325+ casos)",
-  "p": "La fecha de atención debería ser siempre anterior a la fecha en que se ingresó el caso (la atención ya ocurrió, y por eso el paciente pide el documento). Cuando aparece al revés, es una secuencia imposible: normalmente indica que se escribió mal una de las dos fechas.",
-  "s": "Revisar caso a caso en la sección “Secuencia de fechas” de cada módulo — ahí se sugiere automáticamente la fecha corregida cuando el problema es un día/mes invertido, y se marca “revisar manualmente” cuando no se puede deducir."
- },
- {
-  "sev": "serious",
-  "h": "125 RUT que se repiten dentro de un mismo módulo",
-  "p": "125 números de RUT aparecen más de una vez dentro de la misma base (la mayoría en Otras Solicitudes e Informes Médicos). Puede ser un paciente que pidió lo mismo varias veces, o puede ser un caso duplicado que ya se atendió y se volvió a registrar por error.",
-  "s": "Revisar los grupos de RUT repetido en la sección “RUT duplicados” de cada módulo antes de gestionar un caso nuevo — así se evita atender (o pagar) dos veces lo mismo."
- },
- {
-  "sev": "serious",
-  "h": "19 RUT mal escritos",
-  "p": "19 registros tienen un RUT que no es válido: vacío, con formato raro, o con un dígito verificador que no corresponde al número. En algunos casos el campo RUT tiene, por error, un correo o un nombre en vez de un RUT.",
-  "s": "Corregir estos 19 casos en la base — el detalle exacto (fila, nombre y la corrección sugerida cuando existe) está disponible en la pestaña “Auditoría de RUT”."
- },
- {
-  "sev": "warning",
-  "h": "Al menos 5 filas de prueba mezcladas con datos reales",
-  "p": "Se detectaron registros como “Prueba”, RUT “1234”, o textos de prueba mezclados entre las solicitudes reales. Estas filas distorsionan cualquier conteo o estadística que se calcule sobre la base (SLA, gestión, calidad).",
-  "s": "Eliminar o marcar claramente estas filas como “prueba” para que no se cuenten en las estadísticas de gestión."
- },
- {
-  "sev": "warning",
-  "h": "Calidad de la redacción: 700 solicitudes con detalle “Regular” y 24 “Deficiente”",
-  "p": "Al revisar cómo quedó escrita la descripción de cada solicitud (mayúsculas sostenidas, sin tildes, doble espacio, o directamente muy corta como para entender qué pide el paciente), 700 quedaron en un nivel “Regular” y 24 en “Deficiente” — textos tan cortos que el siguiente ejecutivo no puede saber qué se necesita sin volver a contactar al paciente.",
-  "s": "Pedir al equipo que, al registrar el detalle de una solicitud, escriba al menos una frase completa y clara — ayuda a que cualquier otro ejecutivo pueda retomar el caso sin tener que llamar de nuevo al paciente."
- }
+  {
+    "sev": "critical",
+    "h": "533 solicitudes sin gestión registrada",
+    "p": "De las 1504 solicitudes analizadas, 533 no tienen ninguna evidencia de que alguien las haya trabajado.",
+    "s": "Priorizar el cierre de estos casos partiendo por los más antiguos. A futuro, hacer obligatorio dejar una nota de gestión antes de poder cerrar o archivar una solicitud."
+  },
+  {
+    "sev": "critical",
+    "h": "Atención registrada después del ingreso (266 casos)",
+    "p": "La fecha de atención debería ser siempre anterior a la fecha en que se ingresó el caso. Cuando aparece al revés, normalmente indica que se escribió mal una de las dos fechas.",
+    "s": "Revisar caso a caso en la sección de inconsistencias de cada módulo."
+  },
+  {
+    "sev": "serious",
+    "h": "153 RUT que se repiten dentro de un mismo módulo",
+    "p": "Puede ser un paciente que pidió lo mismo varias veces, o un caso duplicado que ya se atendió y se volvió a registrar por error.",
+    "s": "Revisar los grupos de RUT repetido antes de gestionar un caso nuevo."
+  },
+  {
+    "sev": "serious",
+    "h": "19 RUT mal escritos",
+    "p": "Registros con RUT vacío, con formato raro, o con un dígito verificador que no corresponde al número.",
+    "s": "Corregir estos casos en la base — el detalle exacto está disponible en la pestaña Auditoría de RUT."
+  },
+  {
+    "sev": "warning",
+    "h": "Al menos 5 filas de prueba mezcladas con datos reales",
+    "p": "Se detectaron registros como \"Prueba\" o RUT \"1234\" mezclados entre las solicitudes reales.",
+    "s": "Eliminar o marcar claramente estas filas como \"prueba\" para que no se cuenten en las estadísticas."
+  },
+  {
+    "sev": "warning",
+    "h": "Calidad de la redacción: 700 solicitudes \"Regular\" y 24 \"Deficiente\"",
+    "p": "Al revisar cómo quedó escrita la descripción de cada solicitud, algunas quedaron poco claras o muy cortas como para entender qué pide el paciente.",
+    "s": "Pedir al equipo que, al registrar el detalle, escriba al menos una frase completa y clara."
+  }
 ]

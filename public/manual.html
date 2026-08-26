@@ -136,9 +136,10 @@
     <a class="rail-link" href="#resumen">3. Resumen general</a>
     <a class="rail-link" href="#agosto">4. Análisis Mensual</a>
     <a class="rail-link" href="#modulo">5. Dentro de un módulo</a>
-    <a class="rail-link sub" href="#inconsistencias">5.1 Inconsistencias de fecha</a>
-    <a class="rail-link sub" href="#rut-modulo">5.2 Calidad del RUT</a>
-    <a class="rail-link sub" href="#gestion-modulo">5.3 Gestión y calidad de los datos</a>
+    <a class="rail-link sub" href="#sla-modulo">5.1 Cumplimiento de SLA</a>
+    <a class="rail-link sub" href="#inconsistencias">5.2 Inconsistencias de fecha</a>
+    <a class="rail-link sub" href="#rut-modulo">5.3 Calidad del RUT</a>
+    <a class="rail-link sub" href="#gestion-modulo">5.4 Gestión y calidad de los datos</a>
     <a class="rail-link" href="#auditoria-rut">6. Auditoría de RUT</a>
     <a class="rail-link" href="#jefatura">7. Análisis Jefatura</a>
     <a class="rail-link" href="#recuadros">8. Los recuadros clicables</a>
@@ -216,13 +217,21 @@
       <div class="h-sub">Reembolsos, Informes Médicos, Otras Solicitudes, CD Pendiente y Paciente Derivado EP comparten la misma estructura</div>
       <p>Cada uno de los cinco módulos está organizado en las mismas secciones, siempre en el mismo orden. Una vez que entiendes uno, entiendes los cinco.</p>
 
-      <h3 id="inconsistencias">5.1 Inconsistencias de fecha</h3>
-      <p>Lista los distintos tipos de error de fecha encontrados en ese módulo (por ejemplo, "fecha de formulario futura" o "término de licencia anterior al inicio"), con la cantidad de casos y una etiqueta de gravedad a la derecha. Ver el <a href="#glosario">glosario</a> para lo que significa cada color.</p>
+      <h3 id="sla-modulo">5.1 Cumplimiento de SLA</h3>
+      <p>Cuenta los <b>días hábiles</b> (sin sábados, domingos ni feriados chilenos) transcurridos entre la <b>fecha de respuesta del formulario</b> y hoy, y compara ese número contra el plazo de cada módulo:</p>
+      <ul>
+        <li><b>💳 Reembolsos: 14 días hábiles.</b></li>
+        <li><b>Informes Médicos, Otras Solicitudes, 🏥 CD Pendiente y 🧑‍⚕️ Paciente Derivado EP: 10 días hábiles.</b></li>
+      </ul>
+      <p>Un caso queda "Dentro de plazo" si los días hábiles transcurridos no superan ese número, o "Fuera de plazo" si ya lo superó. Las solicitudes sin fecha de ingreso válida no entran en este cálculo (no cuentan ni a favor ni en contra). El día se recalcula solo cada vez que entras al panel, así que el número de días hábiles avanza día a día aunque no actualices el Excel.</p>
 
-      <h3 id="rut-modulo">5.2 Calidad del RUT</h3>
+      <h3 id="inconsistencias">5.2 Inconsistencias de fecha</h3>
+      <p>Lista los distintos tipos de error de fecha encontrados en ese módulo (por ejemplo, "fecha de formulario futura" o "término de licencia anterior al inicio"), con la cantidad de casos y una etiqueta de gravedad a la derecha. Ver el <a href="#glosario">glosario</a> para lo que significa cada color. <span class="muted">Por ahora esta sección solo se muestra en Informes Médicos.</span></p>
+
+      <h3 id="rut-modulo">5.3 Calidad del RUT</h3>
       <p>Muestra cuántos RUT de ese módulo son válidos y, si hay problemas, los separa por tipo: campo vacío, formato no reconocible o dígito verificador incorrecto. Solo se ven las cantidades — el detalle con nombre y RUT aparece únicamente si haces clic.</p>
 
-      <h3 id="gestion-modulo">5.3 Gestión y calidad de los datos</h3>
+      <h3 id="gestion-modulo">5.4 Gestión y calidad de los datos</h3>
       <p>Información que viene de la propia auditoría del archivo (no la calcula el panel): cuántos casos tienen gestión registrada por el equipo, cuántos RUT se repiten dentro del mismo módulo (posibles duplicados), qué tan clara está escrita la solicitud (Buena / Regular / Deficiente) y si se detectaron filas de prueba mezcladas con datos reales.</p>
       <div class="card">
         <h4>¿Qué significa "con gestión"?</h4>
