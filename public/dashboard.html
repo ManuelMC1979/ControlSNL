@@ -253,7 +253,6 @@
     </div>
     <div class="rail-nav" id="railNav"></div>
     <div class="rail-foot">
-      Referencia de fechas: 15‑08‑2026<br>
       Fuente: base interna de solicitudes (Neon)<br>
       <span id="lastUpdated"></span><br>
       <a href="/manual" style="color:var(--rail-ink-2);">📘 Manual de uso</a> ·
@@ -324,7 +323,7 @@ function buildExcelLink(mod, fila){
   return EXCEL_SHARE_LINK + sep + "activeCell=" + encodeURIComponent(cellRef) + "&wdActiveSheet=" + encodeURIComponent(sheet);
 }
 
-let MODULES, MASTER_DATA, BAD_RUTS, CAUSAS;
+let MODULES, MASTER_DATA, BAD_RUTS, CAUSAS, LAST_UPDATED_TEXT;
 let RUT_TOTAL, RUT_VALIDO, RUT_VACIO, RUT_FORMATO, RUT_DV, RUT_MAL;
 let GESTION_TOTAL, GESTION_CON, GESTION_SIN, DUP_GRUPOS_TOTAL, PRUEBA_TOTAL;
 
@@ -333,16 +332,14 @@ function deriveData(payload){
   EXCEL_SHARE_LINK = payload.excelShareLink || "";
   CAUSAS = payload.causas;
 
-  const lastUpdatedEl = document.getElementById("lastUpdated");
-  if(lastUpdatedEl){
-    if(payload.lastUpdatedAt){
-      const d = new Date(payload.lastUpdatedAt);
-      const texto = d.toLocaleString("es-CL", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" });
-      lastUpdatedEl.textContent = `Última actualización: ${texto}`;
-    } else {
-      lastUpdatedEl.textContent = "Última actualización: sin registrar";
-    }
+  if(payload.lastUpdatedAt){
+    const d = new Date(payload.lastUpdatedAt);
+    LAST_UPDATED_TEXT = d.toLocaleString("es-CL", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" });
+  } else {
+    LAST_UPDATED_TEXT = "sin registrar";
   }
+  const lastUpdatedEl = document.getElementById("lastUpdated");
+  if(lastUpdatedEl) lastUpdatedEl.textContent = `Última actualización: ${LAST_UPDATED_TEXT}`;
 
   BAD_RUTS = [];
 
@@ -930,7 +927,7 @@ function build(){
   main.innerHTML = `
     <div class="topbar">
       <h1 id="pageTitle"></h1>
-      <div class="ref">Fecha de referencia del análisis: 15‑08‑2026</div>
+      <div class="ref" id="topbarRef">Última actualización: ${LAST_UPDATED_TEXT}</div>
     </div>
     ${TABS.map(t=>`<div class="panel" id="panel-${t.id}"></div>`).join("")}
   `;
