@@ -712,6 +712,7 @@ function renderAgosto(){
   const buena = allRows.filter(r=>r.calidadTexto==='Buena').length;
   const regular = allRows.filter(r=>r.calidadTexto==='Regular').length;
   const deficiente = allRows.filter(r=>r.calidadTexto==='Deficiente').length;
+  const slaFuera = allRows.filter(r=>r.slaEstado==='fuera').length;
 
   const porModulo = MODULES.map(m=>{
     const rows = allRows.filter(r=>r._mod===m.id);
@@ -721,7 +722,8 @@ function renderAgosto(){
     const rm = rows.filter(r=>r.rutEstado!=='valido').length;
     const reg = rows.filter(r=>r.calidadTexto==='Regular').length;
     const def = rows.filter(r=>r.calidadTexto==='Deficiente').length;
-    return {m, t, sg, rd, rm, reg, def};
+    const sf = rows.filter(r=>r.slaEstado==='fuera').length;
+    return {m, t, sg, rd, rm, reg, def, sf};
   });
 
   return `
@@ -756,6 +758,11 @@ function renderAgosto(){
       <div class="val tabular" style="color:var(--critical-ink)">${rutMal}<small>${pct(rutMal,total)}%</small></div>
       <div class="hint">Ver el detalle →</div>
     </div>
+    <div class="kpi clickable" data-kind="master" data-mod="" data-filter="mesSlaFuera" data-title="RUT fuera de plazo (SLA) — ${mesLabel}, todos los módulos">
+      <div class="lbl">Fuera de plazo (SLA)</div>
+      <div class="val tabular" style="color:var(--critical-ink)">${slaFuera}<small>${pct(slaFuera,total)}%</small></div>
+      <div class="hint">Ver el detalle →</div>
+    </div>
   </div>
 
   <div class="section-title">Calidad de la redacción <span class="n">— solicitudes de ${mesLabel}, las 5 áreas juntas</span></div>
@@ -769,16 +776,17 @@ function renderAgosto(){
   <div class="section-title">Por módulo <span class="n">— solo ${mesLabel} de ${SELECTED_ANIO}</span></div>
   <div class="card pad">
     <table class="rutdef">
-      <thead><tr><th>Módulo</th><th>Solicitudes</th><th>Sin gestión</th><th>RUT duplicados</th><th>RUT mal escritos</th><th>Calidad Regular/Deficiente</th></tr></thead>
+      <thead><tr><th>Módulo</th><th>Solicitudes</th><th>Sin gestión</th><th>RUT duplicados</th><th>RUT mal escritos</th><th>Fuera de SLA</th><th>Calidad Regular/Deficiente</th></tr></thead>
       <tbody>
-        ${porModulo.map(({m,t,sg,rd,rm,reg,def})=>{
-          if(t===0) return `<tr><td>${m.icon} ${m.nombre}</td><td class="mono">0</td><td class="mono" colspan="4" style="color:var(--ink-3)">Sin solicitudes en ${mesLabel}</td></tr>`;
+        ${porModulo.map(({m,t,sg,rd,rm,reg,def,sf})=>{
+          if(t===0) return `<tr><td>${m.icon} ${m.nombre}</td><td class="mono">0</td><td class="mono" colspan="5" style="color:var(--ink-3)">Sin solicitudes en ${mesLabel}</td></tr>`;
           return `<tr>
             <td>${m.icon} ${m.nombre}</td>
             <td class="mono">${t}</td>
             <td class="mono ${sg>0?'clickable':''}" ${sg>0?`data-kind="master" data-filter="mesSinGestion" data-mod="${m.id}" data-title="Sin gestión — ${m.nombre}, ${mesLabel}"`:''} style="${sg>0?'color:var(--critical-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${sg}</td>
             <td class="mono ${rd>0?'clickable':''}" ${rd>0?`data-kind="master" data-filter="mesRutDuplicado" data-mod="${m.id}" data-title="RUT duplicados — ${m.nombre}, ${mesLabel}"`:''} style="${rd>0?'color:var(--serious-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${rd}</td>
             <td class="mono ${rm>0?'clickable':''}" ${rm>0?`data-kind="master" data-filter="mesRutMal" data-mod="${m.id}" data-title="RUT mal escritos — ${m.nombre}, ${mesLabel}"`:''} style="${rm>0?'color:var(--critical-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${rm}</td>
+            <td class="mono ${sf>0?'clickable':''}" ${sf>0?`data-kind="master" data-filter="mesSlaFuera" data-mod="${m.id}" data-title="RUT fuera de plazo (SLA) — ${m.nombre}, ${mesLabel}"`:''} style="${sf>0?'color:var(--critical-ink);font-weight:700;text-decoration:underline;cursor:pointer':''}">${sf}</td>
             <td class="mono">${reg+def}</td>
           </tr>`;
         }).join("")}
@@ -786,7 +794,7 @@ function renderAgosto(){
     </table>
   </div>
   <div class="foot-note">
-    “Sin gestión registrada”, “RUT que se repiten” y “Calidad de la redacción” usan la misma información que ya viene en la auditoría del archivo — acá solo se filtra a las solicitudes cuya fecha de ingreso cae en ${mesLabel} de ${SELECTED_ANIO}. Haz clic en cualquier número para ver el detalle, incluido el RUT.
+    “Sin gestión registrada”, “RUT que se repiten”, “Fuera de SLA” y “Calidad de la redacción” usan la misma información que ya viene en la auditoría del archivo — acá solo se filtra a las solicitudes cuya fecha de ingreso cae en ${mesLabel} de ${SELECTED_ANIO}. Haz clic en cualquier número para ver el detalle, incluido el RUT, o usa “Exportar CSV” dentro del listado para descargarlo.
   </div>
   `;
 }
@@ -1094,6 +1102,7 @@ const MASTER_FILTERS = {
   mesCalidadBuena: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.calidadTexto === "Buena",
   mesCalidadRegular: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.calidadTexto === "Regular",
   mesCalidadDeficiente: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.calidadTexto === "Deficiente",
+  mesSlaFuera: r => esDelMes(r, SELECTED_MES, SELECTED_ANIO) && r.slaEstado === "fuera",
 };
 
 function rowMeta(filterKey, r){
@@ -1113,6 +1122,7 @@ function rowMeta(filterKey, r){
   if(filterKey==="mesCalidadBuena") return {text:"Buena", sev:"good"};
   if(filterKey==="mesCalidadRegular") return {text:"Regular"+[r.todoMayusculas&&" · mayúsculas",r.dobleEspacio&&" · doble espacio",r.faltaTilde&&" · sin tilde"].filter(Boolean).join(""), sev:"warning"};
   if(filterKey==="mesCalidadDeficiente") return {text:"Deficiente (detalle muy corto o vacío)", sev:"critical"};
+  if(filterKey==="mesSlaFuera") return {text:`${r.dias} días hábiles`, sev:"critical"};
   if(filterKey==="categoria" || filterKey==="canal"){
     const sinGestion = r.estadoGestion && /SIN/i.test(r.estadoGestion);
     return {text: r.estadoGestion || "Sin dato de gestión", sev: sinGestion ? "critical" : "good"};
