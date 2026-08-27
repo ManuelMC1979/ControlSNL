@@ -107,6 +107,32 @@ function calcularInconsistencia(ingresoTexto, atencionTexto) {
   return { texto: "OK", ok: true };
 }
 
+// Considera vacía una celda con null, texto en blanco, espacio duro (nbsp) o solo un guion.
+function celdaConContenido(v) {
+  if (v === null || v === undefined) return false;
+  const s = String(v).replace(/ /g, " ").trim();
+  return s !== "" && s !== "-";
+}
+
+// Estado de gestión calculado en vivo a partir de las columnas de gestión de cada hoja
+// (no se usa la hoja de auditoría para esto: sus fórmulas quedan desactualizadas si el
+// Excel no se recalcula antes de guardar, y eso hacía que casos ya gestionados por el
+// equipo/back office siguieran figurando como pendientes en el panel).
+function calcularEstadoGestion(moduleId, row, rawCols) {
+  if (moduleId === "reembolsos") {
+    return celdaConContenido(row[rawCols.responsableBO]) ? "CON RESPONSABLE" : "SIN RESPONSABLE";
+  }
+  if (moduleId === "pacienteep") {
+    const tieneK = celdaConContenido(row[rawCols.gestionK]);
+    const tieneL = celdaConContenido(row[rawCols.gestionL]);
+    return tieneK || tieneL ? "CON GESTIÓN" : "SIN GESTIÓN";
+  }
+  if (rawCols.gestionK !== undefined) {
+    return celdaConContenido(row[rawCols.gestionK]) ? "CON GESTIÓN" : "SIN GESTIÓN";
+  }
+  return null; // módulo sin columna de gestión propia (ej. Informes Médicos): se deja a la auditoría
+}
+
 function truthy(v) {
   if (v === null || v === undefined) return false;
   const s = String(v).trim().toUpperCase();
@@ -166,7 +192,8 @@ function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols
     const atencionTexto = fechaATexto(rawCols.atencion !== undefined ? row[rawCols.atencion] : null);
     const inc = calcularInconsistencia(ingresoTexto, atencionTexto);
 
-    const estadoGestion = auditCols.estadoGestion !== undefined ? cell(a, auditCols.estadoGestion) : null;
+    const estadoGestion = calcularEstadoGestion(moduleId, row, rawCols)
+      || (auditCols.estadoGestion !== undefined ? cell(a, auditCols.estadoGestion) : null);
 
     const q = auditCols.calidadAuto !== undefined
       ? {
@@ -261,7 +288,7 @@ const MODULOS = [
     descripcion: "Recetas, órdenes médicas, certificados y otras solicitudes generales.",
     slaDias: 10,
     rawSheet: "Otras solicitudes",
-    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9 },
+    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9, gestionK: 10 },
     auditSheet: "Auditoria_OtrasSolicitudes",
     auditCols: { fila: 15, ejecutivo: 19, detalle: 20, estadoGestion: 22, allcaps: 30, corto: 31, dobleEsp: 32, faltaTilde: 33, calidadAuto: 34 },
   },
@@ -272,7 +299,7 @@ const MODULOS = [
     descripcion: "Confirmaciones diagnósticas pendientes de agendamiento o respuesta.",
     slaDias: 10,
     rawSheet: "Cita pendiente Conf.Diag",
-    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9 },
+    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9, gestionK: 10 },
     auditSheet: "Auditoria_CitasPendientes",
     auditCols: { fila: 15, ejecutivo: 19, detalle: 20, estadoGestion: 22, allcaps: 31, corto: 32, dobleEsp: 33, faltaTilde: 34, calidadAuto: 35 },
   },
@@ -283,7 +310,7 @@ const MODULOS = [
     descripcion: "Pacientes derivados a Evaluación Preventiva (EP) desde otros servicios.",
     slaDias: 10,
     rawSheet: "Paciente derivado EP",
-    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9 },
+    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9, gestionK: 10, gestionL: 11 },
     auditSheet: "Auditoria_PacienteEP",
     auditCols: { fila: 15, ejecutivo: 19, detalle: 20, estadoGestion: 23 },
   },

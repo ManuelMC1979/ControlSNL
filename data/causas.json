@@ -1,8 +1,8 @@
 [
   {
     "sev": "critical",
-    "h": "533 solicitudes sin gestión registrada",
-    "p": "De las 1504 solicitudes analizadas, 533 no tienen ninguna evidencia de que alguien las haya trabajado.",
+    "h": "537 solicitudes sin gestión registrada",
+    "p": "De las 1504 solicitudes analizadas, 537 no tienen ninguna evidencia de que alguien las haya trabajado.",
     "s": "Priorizar el cierre de estos casos partiendo por los más antiguos. A futuro, hacer obligatorio dejar una nota de gestión antes de poder cerrar o archivar una solicitud."
   },
   {

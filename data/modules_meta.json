@@ -4,7 +4,7 @@
     "nombre": "Otras Solicitudes",
     "icon": "🗂️",
     "descripcion": "Recetas, órdenes médicas, certificados y otras solicitudes generales.",
-    "gestion": "54.6% de los casos tiene gestión registrada — 486 sin gestión.",
+    "gestion": "54.2% de los casos tiene gestión registrada — 490 sin gestión.",
     "observacion": "108 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
     "issues": [
       {
