@@ -79,7 +79,7 @@
     "nombre": "Informes Médicos",
     "icon": "📄",
     "descripcion": "Solicitudes de informes, certificados y licencias médicas.",
-    "gestion": "19.2% de los casos tiene gestión registrada.",
+    "gestion": "97.8% de los casos tiene gestión registrada — 22 sin gestión.",
     "observacion": "167 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
     "issues": [
       {

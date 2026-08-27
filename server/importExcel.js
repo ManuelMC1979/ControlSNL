@@ -120,9 +120,13 @@ function celdaConContenido(v) {
 // equipo/back office siguieran figurando como pendientes en el panel).
 function calcularEstadoGestion(moduleId, row, rawCols) {
   if (moduleId === "reembolsos") {
+    // Cualquiera de estas tres columnas con contenido es evidencia de que el caso se trabajó:
+    // responsable BO asignado, un estado de reembolso registrado (Reversa Automática, Reversa
+    // Manual, No procede..., Solicitado a Imed), o la reversa automática marcada.
     const tieneResponsable = celdaConContenido(row[rawCols.responsableBO]);
-    const reversaLista = String(row[rawCols.reversaAuto] || "").replace(/ /g, " ").trim().toLowerCase() === "listo";
-    return (tieneResponsable || reversaLista) ? "CON RESPONSABLE" : "SIN RESPONSABLE";
+    const tieneEstado = celdaConContenido(row[rawCols.estadoBO]);
+    const tieneReversa = celdaConContenido(row[rawCols.reversaAuto]);
+    return (tieneResponsable || tieneEstado || tieneReversa) ? "CON RESPONSABLE" : "SIN RESPONSABLE";
   }
   if (moduleId === "pacienteep") {
     const tieneK = celdaConContenido(row[rawCols.gestionK]);
@@ -132,7 +136,7 @@ function calcularEstadoGestion(moduleId, row, rawCols) {
   if (rawCols.gestionK !== undefined) {
     return celdaConContenido(row[rawCols.gestionK]) ? "CON GESTIÓN" : "SIN GESTIÓN";
   }
-  return null; // módulo sin columna de gestión propia (ej. Informes Médicos): se deja a la auditoría
+  return null; // módulo sin columna de gestión propia: se deja a la auditoría
 }
 
 function normalizarHeader(h) {
@@ -274,12 +278,16 @@ function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols
     const rutEstado = r.rutInfo.estado;
     const repeticionesRut = rutEstado === "valido" ? rutCount.get(r.rutInfo.numero) || 1 : null;
 
+    // Un caso que ya tiene gestión/responsable registrado no debe contar como "fuera de
+    // plazo": ya fue trabajado, aunque el trámite haya tomado más días que el SLA.
+    const gestionado = r.estadoGestion && !/SIN/i.test(r.estadoGestion);
+
     const ingresoDate = parseDMY(r.ingreso);
     let slaEstado = "sin_fecha";
     let dias = null;
     if (ingresoDate && ingresoDate <= hoy) {
       dias = diasHabilesEntre(ingresoDate, hoy);
-      slaEstado = dias > slaDias ? "fuera" : "dentro";
+      slaEstado = (dias > slaDias && !gestionado) ? "fuera" : "dentro";
     } else if (ingresoDate) {
       slaEstado = "invalido"; // fecha de ingreso futura: no se puede medir plazo todavía
     }
@@ -396,7 +404,7 @@ const MODULOS = [
       ingreso: ["Fecha respuesta formulario", 0], canal: ["Paciente o ejecutivo CC", 1],
       servicio: ["Servicio", 3], nombre: ["Nombre completo", 8], rut: ["Rut (ej: 12345678-9)", 9],
       correo: ["Correo electrónico", 10], atencion: ["Fecha de atención", 14],
-      detalle: ["Detalle su solicitud", 15],
+      detalle: ["Detalle su solicitud", 15], gestionK: ["Column1", 7],
     },
     auditSheet: "Auditoria_InformeMedico",
     auditCols: { fila: 15, ejecutivo: 19, detalle: 20, estadoGestion: 22, allcaps: 30, corto: 31, dobleEsp: 32, faltaTilde: 33, calidadAuto: 34 },

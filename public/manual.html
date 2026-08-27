@@ -223,7 +223,11 @@
         <li><b>💳 Reembolsos: 14 días hábiles.</b></li>
         <li><b>Informes Médicos, Otras Solicitudes, 🏥 CD Pendiente y 🧑‍⚕️ Paciente Derivado EP: 10 días hábiles.</b></li>
       </ul>
-      <p>Un caso queda "Dentro de plazo" si los días hábiles transcurridos no superan ese número, o "Fuera de plazo" si ya lo superó. Las solicitudes sin fecha de ingreso válida no entran en este cálculo (no cuentan ni a favor ni en contra). El día se recalcula solo cada vez que entras al panel, así que el número de días hábiles avanza día a día aunque no actualices el Excel.</p>
+      <p>Un caso queda "Dentro de plazo" si los días hábiles transcurridos no superan ese número, o "Fuera de plazo" si ya lo superó <b>y todavía no tiene gestión registrada</b>. Las solicitudes sin fecha de ingreso válida no entran en este cálculo (no cuentan ni a favor ni en contra). El día se recalcula solo cada vez que entras al panel, así que el número de días hábiles avanza día a día aunque no actualices el Excel.</p>
+      <div class="card">
+        <h4>Un caso gestionado nunca cuenta como "fuera de plazo"</h4>
+        <p>Si el caso ya tiene una gestión, responsable o nota registrada por el equipo (columna "Column1"/"BO"/"Gestionado por:" en Otras Solicitudes, CD Pendiente, Paciente Derivado EP e Informes Médicos; responsable, estado de reembolso o reversa automática en Reembolsos), se considera "Dentro de plazo" aunque hayan pasado más días que el SLA — ya fue trabajado, así que no se cuenta como pendiente sin atender.</p>
+      </div>
 
       <h3 id="inconsistencias">5.2 Inconsistencias de fecha</h3>
       <p>Lista los distintos tipos de error de fecha encontrados en ese módulo (por ejemplo, "fecha de formulario futura" o "término de licencia anterior al inicio"), con la cantidad de casos y una etiqueta de gravedad a la derecha. Ver el <a href="#glosario">glosario</a> para lo que significa cada color. <span class="muted">Por ahora esta sección solo se muestra en Informes Médicos.</span></p>

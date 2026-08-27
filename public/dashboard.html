@@ -428,7 +428,7 @@ function moduleSlaSection(m){
     </div>` : ``}
   </div>
   <div class="foot-note" style="margin-bottom:14px">
-    Cuenta los días hábiles (sin sábados, domingos ni feriados chilenos) transcurridos entre la fecha de respuesta del formulario y hoy. No incluye las solicitudes con fecha de ingreso vacía o inválida (esas quedan fuera de este cálculo, no cuentan como "dentro de plazo").
+    Cuenta los días hábiles (sin sábados, domingos ni feriados chilenos) transcurridos entre la fecha de respuesta del formulario y hoy. No incluye las solicitudes con fecha de ingreso vacía o inválida (esas quedan fuera de este cálculo, no cuentan como "dentro de plazo"). Un caso que ya tiene gestión o responsable registrado nunca cuenta como "fuera de plazo", aunque hayan pasado más días que el SLA — ya fue trabajado.
   </div>
   `;
 }
