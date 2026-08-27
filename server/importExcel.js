@@ -120,7 +120,9 @@ function celdaConContenido(v) {
 // equipo/back office siguieran figurando como pendientes en el panel).
 function calcularEstadoGestion(moduleId, row, rawCols) {
   if (moduleId === "reembolsos") {
-    return celdaConContenido(row[rawCols.responsableBO]) ? "CON RESPONSABLE" : "SIN RESPONSABLE";
+    const tieneResponsable = celdaConContenido(row[rawCols.responsableBO]);
+    const reversaLista = String(row[rawCols.reversaAuto] || "").replace(/ /g, " ").trim().toLowerCase() === "listo";
+    return (tieneResponsable || reversaLista) ? "CON RESPONSABLE" : "SIN RESPONSABLE";
   }
   if (moduleId === "pacienteep") {
     const tieneK = celdaConContenido(row[rawCols.gestionK]);
@@ -321,7 +323,7 @@ const MODULOS = [
     descripcion: "Solicitudes de reembolso de gastos médicos particulares.",
     slaDias: 14,
     rawSheet: "Reembolsos",
-    rawCols: { canal: 1, servicio: 3, nombre: 4, rut: 5, correo: 6, ingreso: 7, estadoBO: 19, responsableBO: 20 },
+    rawCols: { canal: 1, servicio: 3, nombre: 4, rut: 5, correo: 6, ingreso: 7, reversaAuto: 15, estadoBO: 19, responsableBO: 20 },
     auditSheet: "Auditoria_Reembolsos",
     auditCols: { fila: 15, ejecutivo: 18, estadoGestion: 22 },
   },
