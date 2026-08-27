@@ -1,37 +1,37 @@
 [
   {
     "sev": "critical",
-    "h": "537 solicitudes sin gestión registrada",
-    "p": "De las 1504 solicitudes analizadas, 537 no tienen ninguna evidencia de que alguien las haya trabajado.",
+    "h": "551 solicitudes sin gestión registrada",
+    "p": "De las 2615 solicitudes analizadas, 551 no tienen ninguna evidencia de que alguien las haya trabajado.",
     "s": "Priorizar el cierre de estos casos partiendo por los más antiguos. A futuro, hacer obligatorio dejar una nota de gestión antes de poder cerrar o archivar una solicitud."
   },
   {
     "sev": "critical",
-    "h": "Atención registrada después del ingreso (266 casos)",
+    "h": "Atención registrada después del ingreso (376 casos)",
     "p": "La fecha de atención debería ser siempre anterior a la fecha en que se ingresó el caso. Cuando aparece al revés, normalmente indica que se escribió mal una de las dos fechas.",
     "s": "Revisar caso a caso en la sección de inconsistencias de cada módulo."
   },
   {
     "sev": "serious",
-    "h": "153 RUT que se repiten dentro de un mismo módulo",
+    "h": "328 RUT que se repiten dentro de un mismo módulo",
     "p": "Puede ser un paciente que pidió lo mismo varias veces, o un caso duplicado que ya se atendió y se volvió a registrar por error.",
     "s": "Revisar los grupos de RUT repetido antes de gestionar un caso nuevo."
   },
   {
     "sev": "serious",
-    "h": "19 RUT mal escritos",
+    "h": "27 RUT mal escritos",
     "p": "Registros con RUT vacío, con formato raro, o con un dígito verificador que no corresponde al número.",
     "s": "Corregir estos casos en la base — el detalle exacto está disponible en la pestaña Auditoría de RUT."
   },
   {
     "sev": "warning",
-    "h": "Al menos 5 filas de prueba mezcladas con datos reales",
+    "h": "Al menos 6 filas de prueba mezcladas con datos reales",
     "p": "Se detectaron registros como \"Prueba\" o RUT \"1234\" mezclados entre las solicitudes reales.",
     "s": "Eliminar o marcar claramente estas filas como \"prueba\" para que no se cuenten en las estadísticas."
   },
   {
     "sev": "warning",
-    "h": "Calidad de la redacción: 700 solicitudes \"Regular\" y 24 \"Deficiente\"",
+    "h": "Calidad de la redacción: 673 solicitudes \"Regular\" y 23 \"Deficiente\"",
     "p": "Al revisar cómo quedó escrita la descripción de cada solicitud, algunas quedaron poco claras o muy cortas como para entender qué pide el paciente.",
     "s": "Pedir al equipo que, al registrar el detalle, escriba al menos una frase completa y clara."
   }

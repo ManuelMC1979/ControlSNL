@@ -4,17 +4,17 @@
     "nombre": "Otras Solicitudes",
     "icon": "🗂️",
     "descripcion": "Recetas, órdenes médicas, certificados y otras solicitudes generales.",
-    "gestion": "54.2% de los casos tiene gestión registrada — 490 sin gestión.",
-    "observacion": "108 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+    "gestion": "54.2% de los casos tiene gestión registrada — 505 sin gestión.",
+    "observacion": "109 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
     "issues": [
       {
         "t": "Atención posterior al ingreso",
-        "c": 156,
+        "c": 157,
         "sev": "critical"
       },
       {
         "t": "Fecha de ingreso futura",
-        "c": 114,
+        "c": 146,
         "sev": "serious"
       }
     ]
@@ -24,12 +24,12 @@
     "nombre": "CD Pendiente",
     "icon": "🏥",
     "descripcion": "Confirmaciones diagnósticas pendientes de agendamiento o respuesta.",
-    "gestion": "78.1% de los casos tiene gestión registrada — 44 sin gestión.",
-    "observacion": "19 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+    "gestion": "81.2% de los casos tiene gestión registrada — 44 sin gestión.",
+    "observacion": "20 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
     "issues": [
       {
         "t": "Fecha de ingreso futura",
-        "c": 71,
+        "c": 102,
         "sev": "serious"
       },
       {
@@ -64,12 +64,12 @@
     "nombre": "Reembolsos",
     "icon": "💳",
     "descripcion": "Solicitudes de reembolso de gastos médicos particulares.",
-    "gestion": "90.6% de los casos tiene gestión registrada — 3 sin gestión.",
-    "observacion": "1 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+    "gestion": "99.3% de los casos tiene gestión registrada — 2 sin gestión.",
+    "observacion": "33 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
     "issues": [
       {
         "t": "Fecha de ingreso futura",
-        "c": 11,
+        "c": 34,
         "sev": "serious"
       }
     ]
@@ -79,17 +79,17 @@
     "nombre": "Informes Médicos",
     "icon": "📄",
     "descripcion": "Solicitudes de informes, certificados y licencias médicas.",
-    "gestion": "100.0% de los casos tiene gestión registrada.",
-    "observacion": "26 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
+    "gestion": "19.2% de los casos tiene gestión registrada.",
+    "observacion": "167 RUT distintos se repiten dentro de este módulo (posibles duplicados).",
     "issues": [
       {
         "t": "Atención posterior al ingreso",
-        "c": 59,
+        "c": 168,
         "sev": "critical"
       },
       {
         "t": "Fecha de ingreso futura",
-        "c": 58,
+        "c": 89,
         "sev": "serious"
       }
     ]

@@ -135,6 +135,42 @@ function calcularEstadoGestion(moduleId, row, rawCols) {
   return null; // módulo sin columna de gestión propia (ej. Informes Médicos): se deja a la auditoría
 }
 
+function normalizarHeader(h) {
+  return String(h || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Resuelve la posición real de cada columna leyendo el encabezado de la hoja (fila 1),
+// en vez de confiar en un número de columna fijo. Esto evita que el panel quede
+// desalineado si en el Excel se agrega, borra o mueve una columna (como pasó al
+// agregar "Detalle su solicitud" en Reembolsos, que corrió todo lo que venía después).
+//
+// spec: { campo: "Nombre de columna" | ["alias 1", "alias 2"] | numeroFijo }
+// Si no encuentra ningún alias por nombre, usa el número fijo como respaldo.
+function resolverColumnas(headerRow, spec) {
+  const headersNorm = (headerRow || []).map(normalizarHeader);
+  const out = {};
+  for (const [campo, def] of Object.entries(spec)) {
+    if (typeof def === "number") {
+      out[campo] = def;
+      continue;
+    }
+    const alias = Array.isArray(def) ? def : [def];
+    const nombres = alias.filter((a) => typeof a === "string");
+    const fallback = alias.find((a) => typeof a === "number");
+    let idx = -1;
+    for (const nombre of nombres) {
+      idx = headersNorm.indexOf(normalizarHeader(nombre));
+      if (idx !== -1) break;
+    }
+    out[campo] = idx !== -1 ? idx : fallback;
+  }
+  return out;
+}
+
 function truthy(v) {
   if (v === null || v === undefined) return false;
   const s = String(v).trim().toUpperCase();
@@ -168,6 +204,8 @@ function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols
     const nombres = Array.isArray(rawSheet) ? rawSheet.join('" o "') : rawSheet;
     throw new Error(`No se encontró la hoja "${nombres}" en el archivo.`);
   }
+  const headerRow = XLSX.utils.sheet_to_json(wsRaw, { header: 1 })[0] || [];
+  const cols = resolverColumnas(headerRow, rawCols);
   const rawRows = XLSX.utils.sheet_to_json(wsRaw, { header: 1, range: 1, defval: null });
   const audit = leerAuditoria(wb, auditSheet, auditCols);
 
@@ -179,22 +217,22 @@ function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols
     const fila = idx + 2; // fila 1 = encabezado
     const algunDato = row.some((v) => v !== null && v !== undefined && String(v).trim() !== "");
     if (!algunDato) return; // fila totalmente vacía
-    const nombre = cell(row, rawCols.nombre) || "(sin nombre)";
+    const nombre = cell(row, cols.nombre) || "(sin nombre)";
 
-    const rutOriginal = cell(row, rawCols.rut);
+    const rutOriginal = cell(row, cols.rut);
     const rutInfo = analizarRut(rutOriginal);
     if (rutInfo.estado === "valido") {
       rutCount.set(rutInfo.numero, (rutCount.get(rutInfo.numero) || 0) + 1);
     }
 
     const a = audit.get(fila) || [];
-    const detalle = rawCols.detalle !== undefined ? cell(row, rawCols.detalle) : (auditCols.detalle !== undefined ? cell(a, auditCols.detalle) : null);
+    const detalle = cols.detalle !== undefined ? cell(row, cols.detalle) : (auditCols.detalle !== undefined ? cell(a, auditCols.detalle) : null);
 
-    const ingresoTexto = fechaATexto(rawCols.ingreso !== undefined ? row[rawCols.ingreso] : null);
-    const atencionTexto = fechaATexto(rawCols.atencion !== undefined ? row[rawCols.atencion] : null);
+    const ingresoTexto = fechaATexto(cols.ingreso !== undefined ? row[cols.ingreso] : null);
+    const atencionTexto = fechaATexto(cols.atencion !== undefined ? row[cols.atencion] : null);
     const inc = calcularInconsistencia(ingresoTexto, atencionTexto);
 
-    const estadoGestion = calcularEstadoGestion(moduleId, row, rawCols)
+    const estadoGestion = calcularEstadoGestion(moduleId, row, cols)
       || (auditCols.estadoGestion !== undefined ? cell(a, auditCols.estadoGestion) : null);
 
     const q = auditCols.calidadAuto !== undefined
@@ -212,12 +250,12 @@ function procesarModulo({ wb, moduleId, rawSheet, rawCols, auditSheet, auditCols
       nombre,
       rutOriginal,
       rutInfo,
-      correo: rawCols.correo !== undefined ? cell(row, rawCols.correo) : null,
-      servicio: rawCols.servicio !== undefined ? cell(row, rawCols.servicio) : null,
-      paciente: rawCols.canal !== undefined ? cell(row, rawCols.canal) : null,
-      ejecutivo: auditCols.ejecutivo !== undefined ? cell(a, auditCols.ejecutivo) : (rawCols.ejecutivo !== undefined ? cell(row, rawCols.ejecutivo) : null),
-      estadoBO: rawCols.estadoBO !== undefined ? cell(row, rawCols.estadoBO) : null,
-      responsableBO: rawCols.responsableBO !== undefined ? cell(row, rawCols.responsableBO) : null,
+      correo: cols.correo !== undefined ? cell(row, cols.correo) : null,
+      servicio: cols.servicio !== undefined ? cell(row, cols.servicio) : null,
+      paciente: cols.canal !== undefined ? cell(row, cols.canal) : null,
+      ejecutivo: auditCols.ejecutivo !== undefined ? cell(a, auditCols.ejecutivo) : (cols.ejecutivo !== undefined ? cell(row, cols.ejecutivo) : null),
+      estadoBO: cols.estadoBO !== undefined ? cell(row, cols.estadoBO) : null,
+      responsableBO: cols.responsableBO !== undefined ? cell(row, cols.responsableBO) : null,
       ingreso: ingresoTexto,
       ingresoSugerido: inc.ingresoSugerido || null,
       atencion: atencionTexto,
@@ -290,7 +328,12 @@ const MODULOS = [
     descripcion: "Recetas, órdenes médicas, certificados y otras solicitudes generales.",
     slaDias: 10,
     rawSheet: "Otras solicitudes",
-    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9, gestionK: 10 },
+    rawCols: {
+      ingreso: ["Fecha respuesta formulario", 0], canal: ["Paciente o ejecutivo CC", 1],
+      servicio: ["Servicio", 3], nombre: ["Nombre completo", 5], rut: ["Rut (ej: 12345678-9)", 6],
+      correo: ["Correo electrónico", 7], atencion: ["Fecha de atención", 8],
+      detalle: ["Detalle su solicitud", 9], gestionK: ["BO", 10],
+    },
     auditSheet: "Auditoria_OtrasSolicitudes",
     auditCols: { fila: 15, ejecutivo: 19, detalle: 20, estadoGestion: 22, allcaps: 30, corto: 31, dobleEsp: 32, faltaTilde: 33, calidadAuto: 34 },
   },
@@ -301,7 +344,12 @@ const MODULOS = [
     descripcion: "Confirmaciones diagnósticas pendientes de agendamiento o respuesta.",
     slaDias: 10,
     rawSheet: "Cita pendiente Conf.Diag",
-    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9, gestionK: 10 },
+    rawCols: {
+      ingreso: ["Fecha respuesta formulario", 0], canal: ["Paciente o ejecutivo CC", 1],
+      servicio: ["Servicio", 3], nombre: ["Nombre completo", 5], rut: ["Rut (ej: 12345678-9)", 6],
+      correo: ["Correo electrónico", 7], atencion: ["Fecha de atención", 8],
+      detalle: ["Detalle su solicitud", 9], gestionK: 10,
+    },
     auditSheet: "Auditoria_CitasPendientes",
     auditCols: { fila: 15, ejecutivo: 19, detalle: 20, estadoGestion: 22, allcaps: 31, corto: 32, dobleEsp: 33, faltaTilde: 34, calidadAuto: 35 },
   },
@@ -312,7 +360,12 @@ const MODULOS = [
     descripcion: "Pacientes derivados a Evaluación Preventiva (EP) desde otros servicios.",
     slaDias: 10,
     rawSheet: "Paciente derivado EP",
-    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 5, rut: 6, correo: 7, atencion: 8, detalle: 9, gestionK: 10, gestionL: 11 },
+    rawCols: {
+      ingreso: ["Fecha respuesta formulario", 0], canal: ["Paciente o ejecutivo CC", 1],
+      servicio: ["Servicio", 3], nombre: ["Nombre completo", 5], rut: ["Rut (ej: 12345678-9)", 6],
+      correo: ["Correo electrónico", 7], atencion: ["Fecha de atención", 8],
+      detalle: ["Detalle su solicitud", 9], gestionK: ["Gestionado por:", 10], gestionL: 11,
+    },
     auditSheet: "Auditoria_PacienteEP",
     auditCols: { fila: 15, ejecutivo: 19, detalle: 20, estadoGestion: 23 },
   },
@@ -323,7 +376,12 @@ const MODULOS = [
     descripcion: "Solicitudes de reembolso de gastos médicos particulares.",
     slaDias: 14,
     rawSheet: "Reembolsos",
-    rawCols: { canal: 1, servicio: 3, nombre: 4, rut: 5, correo: 6, ingreso: 7, reversaAuto: 15, estadoBO: 19, responsableBO: 20 },
+    rawCols: {
+      canal: ["Paciente o ejecutivo CC", 1], servicio: ["Servicio", 3], nombre: ["Nombre completo", 4],
+      rut: ["Rut (ej: 12345678-9)", 5], correo: ["Correo electrónico", 6],
+      ingreso: ["Fecha de cita reclamo reembolso", 7], reversaAuto: ["Reversa automatica", 15],
+      estadoBO: ["Estatus (BO)", 19], responsableBO: ["(BO) Responsable", 20],
+    },
     auditSheet: "Auditoria_Reembolsos",
     auditCols: { fila: 15, ejecutivo: 18, estadoGestion: 22 },
   },
@@ -334,7 +392,12 @@ const MODULOS = [
     descripcion: "Solicitudes de informes, certificados y licencias médicas.",
     slaDias: 10,
     rawSheet: ["INFORMES MEDICOS", "Informes Medicos", "CDPendiente_BASE"],
-    rawCols: { ingreso: 0, canal: 1, servicio: 3, nombre: 8, rut: 9, correo: 10, atencion: 14, detalle: 15 },
+    rawCols: {
+      ingreso: ["Fecha respuesta formulario", 0], canal: ["Paciente o ejecutivo CC", 1],
+      servicio: ["Servicio", 3], nombre: ["Nombre completo", 8], rut: ["Rut (ej: 12345678-9)", 9],
+      correo: ["Correo electrónico", 10], atencion: ["Fecha de atención", 14],
+      detalle: ["Detalle su solicitud", 15],
+    },
     auditSheet: "Auditoria_InformeMedico",
     auditCols: { fila: 15, ejecutivo: 19, detalle: 20, estadoGestion: 22, allcaps: 30, corto: 31, dobleEsp: 32, faltaTilde: 33, calidadAuto: 34 },
   },
