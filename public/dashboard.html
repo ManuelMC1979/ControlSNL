@@ -281,7 +281,7 @@
     </div>
     <div class="modal-foot" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
       <span id="modalFoot"></span>
-      <button class="excel-btn" id="modalExportBtn" style="border:none; cursor:pointer; flex:0 0 auto;">⬇️ Exportar CSV</button>
+      <button class="excel-btn" id="modalExportBtn" style="border:none; cursor:pointer; flex:0 0 auto;">📊 Exportar a Excel</button>
     </div>
   </div>
 </div>
@@ -1019,37 +1019,84 @@ const modalSubtitle = document.getElementById("modalSubtitle");
 const modalBody = document.getElementById("modalBody");
 const modalFoot = document.getElementById("modalFoot");
 
-function csvEscape(v){
-  const s = String(v==null ? "" : v);
-  return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+// Lista de {mod, fila} del listado que está abierto ahora mismo en el popup —
+// se usa para exportar a Excel con la información completa de cada registro
+// (RUT, nombre, paciente, etc.), no solo las columnas que se ven en la tabla.
+let CURRENT_MODAL_ROWS = [];
+
+let xlsxCargando = null;
+function cargarXLSX(){
+  if(window.XLSX) return Promise.resolve();
+  if(xlsxCargando) return xlsxCargando;
+  xlsxCargando = new Promise((resolve, reject)=>{
+    const s = document.createElement("script");
+    s.src = "/vendor/xlsx.full.min.js";
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("No se pudo cargar el generador de Excel."));
+    document.head.appendChild(s);
+  });
+  return xlsxCargando;
 }
 
-function exportModalCSV(){
-  const headCells = [...document.querySelectorAll("#modalHead th")].map(th=>th.textContent.trim());
-  const rows = [...document.querySelectorAll("#modalBody tr")]
-    .map(tr => [...tr.querySelectorAll("td")].map(td=>td.textContent.trim().replace(/\s+/g," ")))
-    .filter(cols => cols.length === headCells.length); // descarta la fila de "sin casos"
-  if(!rows.length) return;
-  const lineas = [headCells, ...rows].map(cols => cols.map(csvEscape).join(","));
-  const csv = "﻿" + lineas.join("\r\n");
-  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const nombre = (modalTitle.textContent||"export").toLowerCase()
+function nombreArchivoDesdeTitulo(titulo){
+  return (titulo||"export").toLowerCase()
     .normalize("NFD").replace(/[̀-ͯ]/g,"")
     .replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"") || "export";
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${nombre}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }
-document.getElementById("modalExportBtn").addEventListener("click", exportModalCSV);
+
+const SLA_ESTADO_LABEL = {dentro:"Dentro de plazo", fuera:"Fuera de plazo", invalido:"No medible (fecha futura)", sin_fecha:"Sin fecha de ingreso"};
+
+async function exportModalExcel(){
+  const btn = document.getElementById("modalExportBtn");
+  const textoOriginal = btn.textContent;
+  btn.textContent = "Generando…";
+  btn.disabled = true;
+  try{
+    await cargarXLSX();
+    const registros = CURRENT_MODAL_ROWS
+      .map(({mod, fila}) => ({mod, r: (MASTER_DATA[mod]||[]).find(x => x.fila === fila)}))
+      .filter(x => x.r);
+    if(!registros.length){ btn.textContent = textoOriginal; btn.disabled = false; return; }
+
+    const filas = registros.map(({mod, r}) => ({
+      "Módulo": MOD_LABEL[mod] || mod,
+      "Fila en base": r.fila,
+      "Nombre": r.nombre || "",
+      "RUT": r.rut || "",
+      "Estado RUT": RUT_ESTADO_LABEL[r.rutEstado] || "",
+      "RUT sugerido": r.rutSugerencia || "",
+      "Correo": r.correo || "",
+      "Servicio": r.servicio || "",
+      "Canal": r.paciente || "",
+      "Ejecutivo": r.ejecutivo || "",
+      "Estado de gestión": r.estadoGestion || "",
+      "Fecha respuesta formulario": r.ingreso || "",
+      "Fecha de atención": r.atencion || "",
+      "Inconsistencia de fecha": r.incTexto || "",
+      "Cumplimiento de SLA": SLA_ESTADO_LABEL[r.slaEstado] || "",
+      "Días hábiles transcurridos": r.dias ?? "",
+      "Calidad de la redacción": r.calidadTexto || "",
+      "Detalle de la solicitud": r.detalle || "",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(filas);
+    ws["!cols"] = Object.keys(filas[0]).map(k => ({ wch: Math.max(12, Math.min(40, k.length + 2)) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Detalle");
+    XLSX.writeFile(wb, `${nombreArchivoDesdeTitulo(modalTitle.textContent)}.xlsx`);
+  } catch(err){
+    alert(err.message || "No se pudo generar el Excel.");
+  } finally {
+    btn.textContent = textoOriginal;
+    btn.disabled = false;
+  }
+}
+document.getElementById("modalExportBtn").addEventListener("click", exportModalExcel);
 
 function openRutModal(mod, tipo, title){
   document.getElementById("modalHead").innerHTML = `<tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>RUT ingresado</th><th>Error</th><th>Corrección sugerida</th></tr>`;
   const items = BAD_RUTS.filter(r => (!mod || r.mod===mod) && (!tipo || r.tipo===tipo));
+  CURRENT_MODAL_ROWS = items.map(r => ({mod: r.mod, fila: r.fila}));
   modalTitle.textContent = title || "RUT mal escritos";
   modalSubtitle.textContent = `${items.length} caso${items.length===1?'':'s'} — dato mostrado solo para corrección directa en la base interna.`;
   modalBody.innerHTML = items.map(r => `
@@ -1157,6 +1204,7 @@ function openMasterList(mod, filterKey, title, extra){
     }
   }
   items.sort((a,b)=> a._mod===b._mod ? a.fila-b.fila : a._mod.localeCompare(b._mod));
+  CURRENT_MODAL_ROWS = items.map(r => ({mod: r._mod, fila: r.fila}));
 
   document.getElementById("modalHead").innerHTML = `<tr>${mod?'':'<th>Módulo</th>'}<th>Fila en base</th><th>Nombre</th><th>Servicio</th><th>Fecha respuesta formulario</th><th>Estado</th></tr>`;
   modalTitle.textContent = title || "Registros";
