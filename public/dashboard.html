@@ -279,7 +279,10 @@
         <tbody id="modalBody"></tbody>
       </table>
     </div>
-    <div class="modal-foot" id="modalFoot"></div>
+    <div class="modal-foot" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <span id="modalFoot"></span>
+      <button class="excel-btn" id="modalExportBtn" style="border:none; cursor:pointer; flex:0 0 auto;">⬇️ Exportar CSV</button>
+    </div>
   </div>
 </div>
 
@@ -1007,6 +1010,34 @@ const modalTitle = document.getElementById("modalTitle");
 const modalSubtitle = document.getElementById("modalSubtitle");
 const modalBody = document.getElementById("modalBody");
 const modalFoot = document.getElementById("modalFoot");
+
+function csvEscape(v){
+  const s = String(v==null ? "" : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+
+function exportModalCSV(){
+  const headCells = [...document.querySelectorAll("#modalHead th")].map(th=>th.textContent.trim());
+  const rows = [...document.querySelectorAll("#modalBody tr")]
+    .map(tr => [...tr.querySelectorAll("td")].map(td=>td.textContent.trim().replace(/\s+/g," ")))
+    .filter(cols => cols.length === headCells.length); // descarta la fila de "sin casos"
+  if(!rows.length) return;
+  const lineas = [headCells, ...rows].map(cols => cols.map(csvEscape).join(","));
+  const csv = "﻿" + lineas.join("\r\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const nombre = (modalTitle.textContent||"export").toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"") || "export";
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${nombre}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+document.getElementById("modalExportBtn").addEventListener("click", exportModalCSV);
 
 function openRutModal(mod, tipo, title){
   document.getElementById("modalHead").innerHTML = `<tr><th>Módulo</th><th>Fila en base</th><th>Nombre</th><th>RUT ingresado</th><th>Error</th><th>Corrección sugerida</th></tr>`;
