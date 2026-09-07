@@ -196,8 +196,20 @@ function leerAuditoria(wb, sheetName, cols) {
 
 function buscarHoja(wb, nombres) {
   const candidatos = Array.isArray(nombres) ? nombres : [nombres];
+  // 1) coincidencia exacta primero.
   for (const n of candidatos) {
     if (wb.Sheets[n]) return wb.Sheets[n];
+  }
+  // 2) si no hay coincidencia exacta, compara nombres normalizados (sin
+  //    tildes, sin mayúsculas, espacios colapsados). Así el panel no se cae
+  //    cada vez que el archivo cambia solo mayúsculas/tildes en el nombre de
+  //    una hoja — el mismo problema que ya resuelve resolverColumnas() para
+  //    encabezados de columna, aplicado ahora a nombres de hoja.
+  const nombresReales = Object.keys(wb.Sheets);
+  for (const n of candidatos) {
+    const norm = normalizarHeader(n);
+    const match = nombresReales.find((real) => normalizarHeader(real) === norm);
+    if (match) return wb.Sheets[match];
   }
   return null;
 }
@@ -351,7 +363,10 @@ const MODULOS = [
     icon: "🏥",
     descripcion: "Confirmaciones diagnósticas pendientes de agendamiento o respuesta.",
     slaDias: 10,
-    rawSheet: "Cita pendiente Conf.Diag",
+    // "CDPendiente_BASE" es el nombre que trae el archivo desde agosto 2026
+    // (antes era "Cita pendiente Conf.Diag"); se dejan ambos por si el
+    // archivo vuelve a traer el nombre viejo.
+    rawSheet: ["Cita pendiente Conf.Diag", "CDPendiente_BASE"],
     rawCols: {
       ingreso: ["Fecha respuesta formulario", 0], canal: ["Paciente o ejecutivo CC", 1],
       servicio: ["Servicio", 3], nombre: ["Nombre completo", 5], rut: ["Rut (ej: 12345678-9)", 6],
@@ -399,7 +414,11 @@ const MODULOS = [
     icon: "📄",
     descripcion: "Solicitudes de informes, certificados y licencias médicas.",
     slaDias: 10,
-    rawSheet: ["INFORMES MEDICOS", "Informes Medicos", "CDPendiente_BASE"],
+    // OJO: "CDPendiente_BASE" NO va en esta lista — es el nombre nuevo de la
+    // hoja "Cita pendiente Conf.Diag" (módulo "cd" más arriba), no de esta.
+    // Estaba mal puesto acá y hacía que este módulo leyera los datos de CD
+    // Pendiente como si fueran Informes Médicos, sin ningún error visible.
+    rawSheet: ["Informes Médicos", "Informes Médicos (automatico)", "INFORMES MEDICOS", "Informes Medicos"],
     rawCols: {
       ingreso: ["Fecha respuesta formulario", 0], canal: ["Paciente o ejecutivo CC", 1],
       servicio: ["Servicio", 3], nombre: ["Nombre completo", 8], rut: ["Rut (ej: 12345678-9)", 9],
