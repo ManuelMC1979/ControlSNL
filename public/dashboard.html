@@ -1024,20 +1024,6 @@ const modalFoot = document.getElementById("modalFoot");
 // (RUT, nombre, paciente, etc.), no solo las columnas que se ven en la tabla.
 let CURRENT_MODAL_ROWS = [];
 
-let xlsxCargando = null;
-function cargarXLSX(){
-  if(window.XLSX) return Promise.resolve();
-  if(xlsxCargando) return xlsxCargando;
-  xlsxCargando = new Promise((resolve, reject)=>{
-    const s = document.createElement("script");
-    s.src = "/vendor/xlsx.full.min.js";
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("No se pudo cargar el generador de Excel."));
-    document.head.appendChild(s);
-  });
-  return xlsxCargando;
-}
-
 function nombreArchivoDesdeTitulo(titulo){
   return (titulo||"export").toLowerCase()
     .normalize("NFD").replace(/[̀-ͯ]/g,"")
@@ -1052,11 +1038,10 @@ async function exportModalExcel(){
   btn.textContent = "Generando…";
   btn.disabled = true;
   try{
-    await cargarXLSX();
     const registros = CURRENT_MODAL_ROWS
       .map(({mod, fila}) => ({mod, r: (MASTER_DATA[mod]||[]).find(x => x.fila === fila)}))
       .filter(x => x.r);
-    if(!registros.length){ btn.textContent = textoOriginal; btn.disabled = false; return; }
+    if(!registros.length){ return; }
 
     const filas = registros.map(({mod, r}) => ({
       "Módulo": MOD_LABEL[mod] || mod,
@@ -1079,11 +1064,25 @@ async function exportModalExcel(){
       "Detalle de la solicitud": r.detalle || "",
     }));
 
-    const ws = XLSX.utils.json_to_sheet(filas);
-    ws["!cols"] = Object.keys(filas[0]).map(k => ({ wch: Math.max(12, Math.min(40, k.length + 2)) }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Detalle");
-    XLSX.writeFile(wb, `${nombreArchivoDesdeTitulo(modalTitle.textContent)}.xlsx`);
+    const res = await fetch("/api/exportar-excel", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ filas, nombreArchivo: nombreArchivoDesdeTitulo(modalTitle.textContent) }),
+    });
+    if(!res.ok){
+      const data = await res.json().catch(()=>({}));
+      throw new Error(data.error || `Error HTTP ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${nombreArchivoDesdeTitulo(modalTitle.textContent)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   } catch(err){
     alert(err.message || "No se pudo generar el Excel.");
   } finally {

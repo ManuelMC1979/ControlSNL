@@ -3,6 +3,7 @@ const path = require("path");
 const express = require("express");
 const session = require("express-session");
 const multer = require("multer");
+const XLSX = require("xlsx");
 const { pool } = require("./db");
 const { requireAuth, login, logout } = require("./auth");
 const { procesarWorkbook } = require("./importExcel");
@@ -134,6 +135,29 @@ app.get("/api/dashboard-data", async (req, res) => {
   } catch (err) {
     console.error("Error /api/dashboard-data:", err);
     res.status(500).json({ error: "No se pudo leer la base de datos." });
+  }
+});
+
+// ---------- Exportar a Excel: recibe filas ya armadas por el navegador y devuelve un .xlsx ----------
+app.post("/api/exportar-excel", express.json({ limit: "5mb" }), (req, res) => {
+  try {
+    const { filas, nombreArchivo } = req.body || {};
+    if (!Array.isArray(filas) || filas.length === 0) {
+      return res.status(400).json({ error: "No hay filas para exportar." });
+    }
+    const ws = XLSX.utils.json_to_sheet(filas);
+    ws["!cols"] = Object.keys(filas[0]).map((k) => ({ wch: Math.max(12, Math.min(40, String(k).length + 2)) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Detalle");
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    const nombre = String(nombreArchivo || "export").replace(/[^a-zA-Z0-9_\-]/g, "_") || "export";
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="${nombre}.xlsx"`);
+    res.send(buffer);
+  } catch (err) {
+    console.error("Error generando Excel:", err);
+    res.status(500).json({ error: "No se pudo generar el archivo Excel." });
   }
 });
 
